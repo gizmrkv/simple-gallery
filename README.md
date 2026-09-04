@@ -23,6 +23,7 @@ GitHub Pagesは1リポジトリにつき1サイトしか持てない。そのた
 | [boids-like](./boids-like/) | [/boids-like/](https://gizmrkv.github.io/simple-gallery/boids-like/) | [simple-boids-like](https://github.com/gizmrkv/simple-boids-like) | boidの群れを1つの共有プログラムで操作するゲームプロトタイプ |
 | [boids-page](./boids-page/) | [/boids-page/](https://gizmrkv.github.io/simple-gallery/boids-page/) | [simple-boids-page](https://github.com/gizmrkv/simple-boids-page) | Boidsアルゴリズムによる群れの振る舞いモデル |
 | [mnist-doodle](./mnist-doodle/) | [/mnist-doodle/](https://gizmrkv.github.io/simple-gallery/mnist-doodle/) | [simple-mnist-doodle-page](https://github.com/gizmrkv/simple-mnist-doodle-page) | ブラウザ上で動作する手書き数字認識デモ(ONNX Runtime Web) |
+| [platformer](./platformer/) | [/platformer/](https://gizmrkv.github.io/simple-gallery/platformer/) | — | 重力・ジャンプで足場を渡りゴールを目指すシンプルな2Dプラットフォーマー |
 
 ## 設計
 

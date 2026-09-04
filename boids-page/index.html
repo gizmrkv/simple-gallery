@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Boids Algorithm Simulation</title>
+    <!-- Modern Google Font for UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <canvas id="boidsCanvas"></canvas>
+    
+    <div class="ui-container">
+      <h1>Boids Simulation</h1>
+      <p class="subtitle">人工生命・群れの振る舞いモデル</p>
+      
+      <div class="control-group">
+        <label>
+          <div class="label-text">
+            <span>Separation (分離)</span>
+            <span class="value-display"></span>
+          </div>
+          <input type="range" id="separation" min="0" max="3" step="0.1" value="1.5">
+        </label>
+        
+        <label>
+          <div class="label-text">
+            <span>Alignment (整列)</span>
+            <span class="value-display"></span>
+          </div>
+          <input type="range" id="alignment" min="0" max="3" step="0.1" value="1.0">
+        </label>
+        
+        <label>
+          <div class="label-text">
+            <span>Cohesion (結合)</span>
+            <span class="value-display"></span>
+          </div>
+          <input type="range" id="cohesion" min="0" max="3" step="0.1" value="1.0">
+        </label>
+        
+        <div class="divider"></div>
+        
+        <label>
+          <div class="label-text">
+            <span>Perception Radius (感知範囲)</span>
+            <span class="value-display"></span>
+          </div>
+          <input type="range" id="radius" min="10" max="200" step="5" value="50">
+        </label>
+        
+        <label>
+          <div class="label-text">
+            <span>Max Speed (最大速度)</span>
+            <span class="value-display"></span>
+          </div>
+          <input type="range" id="speed" min="1" max="10" step="0.5" value="4">
+        </label>
+        
+        <label>
+          <div class="label-text">
+            <span>Steering Force (操舵力)</span>
+            <span class="value-display"></span>
+          </div>
+          <input type="range" id="force" min="0.01" max="0.5" step="0.01" value="0.1">
+        </label>
+        
+        <div class="divider"></div>
+        
+        <label>
+          <div class="label-text">
+            <span>Boid Count (個体数)</span>
+            <span class="value-display"></span>
+          </div>
+          <input type="range" id="count" min="10" max="500" step="10" value="200">
+        </label>
+      </div>
+      
+      <div class="instructions">
+        <p>• マウスを近づけるとBoidsが避けます</p>
+        <p>• 画面クリックでBoidsを追加できます</p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+      // Update value displays dynamically
+      document.querySelectorAll('input[type="range"]').forEach(input => {
+        const display = input.parentElement.querySelector('.value-display');
+        display.textContent = input.value;
+        input.addEventListener('input', (e) => {
+          display.textContent = e.target.value;
+        });
+      });
+    </script>
+  </body>
+</html>

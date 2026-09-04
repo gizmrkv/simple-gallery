@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [lead-turret, boids-like, boids-page, mnist-doodle]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+      - run: npm ci
+        working-directory: ${{ matrix.project }}
+      - run: npm run build
+        working-directory: ${{ matrix.project }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.project }}
+          path: ${{ matrix.project }}/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Assemble site
+        run: |
+          mkdir -p site
+          cp index.html site/
+          for project in lead-turret boids-like boids-page mnist-doodle; do
+            mkdir -p "site/$project"
+            cp -r "artifacts/dist-$project/." "site/$project/"
+          done
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

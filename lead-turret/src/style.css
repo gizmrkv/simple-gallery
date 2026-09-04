@@ -1,0 +1,50 @@
+:root {
+  color-scheme: light dark;
+  font: 14px/1.4 ui-monospace, Consolas, monospace;
+}
+
+body {
+  margin: 0;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+#controls {
+  display: flex;
+  gap: 8px;
+}
+
+#controls button {
+  font: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+#controls button[aria-pressed='true'] {
+  font-weight: bold;
+}
+
+#controls label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  cursor: pointer;
+}
+
+canvas {
+  border: 1px solid #8888;
+  background: #1118;
+  max-width: 100%;
+  height: auto;
+}
+
+#status {
+  white-space: pre;
+}

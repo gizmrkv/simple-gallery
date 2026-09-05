@@ -26,6 +26,7 @@ GitHub Pagesは1リポジトリにつき1サイトしか持てない。そのた
 | [platformer](./platformer/) | [/platformer/](https://gizmrkv.github.io/simple-gallery/platformer/) | — | 重力・ジャンプで足場を渡りゴールを目指すシンプルな2Dプラットフォーマー |
 | [puyo](./puyo/) | [/puyo/](https://gizmrkv.github.io/simple-gallery/puyo/) | — | 同色4つ以上を連結して消す落ちものパズル |
 | [tetris](./tetris/) | [/tetris/](https://gizmrkv.github.io/simple-gallery/tetris/) | — | 落ちてくるテトロミノを揃えてラインを消す定番の落ちものパズル |
+| [harmony-roll](./harmony-roll/) | [/harmony-roll/](https://gizmrkv.github.io/simple-gallery/harmony-roll/) | — | 機能和声の状態遷移をランダムウォークしてメロディと伴奏コードを自動生成するピアノロール風デモ |
 
 ## 設計
 

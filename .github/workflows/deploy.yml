@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [lead-turret, boids-like, boids-page, mnist-doodle, platformer, puyo]
+        project: [lead-turret, boids-like, boids-page, mnist-doodle, platformer, puyo, tetris]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -51,7 +51,7 @@ jobs:
         run: |
           mkdir -p site
           cp index.html site/
-          for project in lead-turret boids-like boids-page mnist-doodle platformer puyo; do
+          for project in lead-turret boids-like boids-page mnist-doodle platformer puyo tetris; do
             mkdir -p "site/$project"
             cp -r "artifacts/dist-$project/." "site/$project/"
           done

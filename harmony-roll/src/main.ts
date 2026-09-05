@@ -1,5 +1,11 @@
 import "./style.css";
-import { generatePhrase, phraseDurationSeconds, DEFAULT_TEMPO_BPM, type Phrase } from "./generate.ts";
+import {
+  generatePhrase,
+  phraseDurationSeconds,
+  DEFAULT_TEMPO_BPM,
+  DEFAULT_MAX_MELODY_INTERVAL,
+  type Phrase,
+} from "./generate.ts";
 import { playPhrase, type PlaybackHandle } from "./audio.ts";
 import { render, canvasWidth, canvasHeight } from "./render.ts";
 
@@ -7,6 +13,8 @@ const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", 
 const BAR_OPTIONS = [4, 8];
 const BPM_MIN = 60;
 const BPM_MAX = 200;
+const MAX_INTERVAL_MIN = 1;
+const MAX_INTERVAL_MAX = 12; // an octave
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas")!;
@@ -39,19 +47,38 @@ bpmInput.value = String(DEFAULT_TEMPO_BPM);
 const bpmLabel = document.createElement("span");
 bpmLabel.textContent = `${DEFAULT_TEMPO_BPM} BPM`;
 
+const maxIntervalInput = document.createElement("input");
+maxIntervalInput.type = "range";
+maxIntervalInput.min = String(MAX_INTERVAL_MIN);
+maxIntervalInput.max = String(MAX_INTERVAL_MAX);
+maxIntervalInput.value = String(DEFAULT_MAX_MELODY_INTERVAL);
+
+const maxIntervalLabel = document.createElement("span");
+maxIntervalLabel.textContent = `跳躍幅 ≤${DEFAULT_MAX_MELODY_INTERVAL}半音`;
+
 const generateButton = document.createElement("button");
 generateButton.textContent = "Generate";
 
 const playButton = document.createElement("button");
 playButton.textContent = "Play";
 
-controls.append(rootSelect, barsSelect, bpmInput, bpmLabel, generateButton, playButton);
+controls.append(
+  rootSelect,
+  barsSelect,
+  bpmInput,
+  bpmLabel,
+  maxIntervalInput,
+  maxIntervalLabel,
+  generateButton,
+  playButton,
+);
 app.insertBefore(controls, canvas);
 
 let phrase: Phrase = generatePhrase({
   rootPitchClass: 0,
   bars: BAR_OPTIONS[0],
   tempoBpm: DEFAULT_TEMPO_BPM,
+  maxMelodyInterval: DEFAULT_MAX_MELODY_INTERVAL,
 });
 let audioCtx: AudioContext | null = null;
 let playback: PlaybackHandle | null = null;
@@ -80,9 +107,14 @@ function regenerate(): void {
     rootPitchClass: Number(rootSelect.value),
     bars: Number(barsSelect.value),
     tempoBpm: Number(bpmInput.value),
+    maxMelodyInterval: Number(maxIntervalInput.value),
   });
   resizeCanvas();
   updateStatus();
+}
+
+function updateMaxIntervalLabel(): void {
+  maxIntervalLabel.textContent = `跳躍幅 ≤${maxIntervalInput.value}半音`;
 }
 
 function changeTempo(): void {
@@ -108,6 +140,7 @@ function togglePlayback(): void {
 generateButton.addEventListener("click", regenerate);
 playButton.addEventListener("click", togglePlayback);
 bpmInput.addEventListener("input", changeTempo);
+maxIntervalInput.addEventListener("input", updateMaxIntervalLabel);
 
 function frame(): void {
   if (isPlaying && audioCtx) {

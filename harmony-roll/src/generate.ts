@@ -32,13 +32,13 @@ export interface Phrase {
 export const STEPS_PER_BAR = 4;
 export const NOTE_PROBABILITY = 0.8;
 export const DEFAULT_TEMPO_BPM = 100;
+// Default cap on how far consecutive melody notes can leap (in semitones), so
+// the melody doesn't jump around unpredictably between the chord tones of a bar.
+export const DEFAULT_MAX_MELODY_INTERVAL = 7; // a perfect fifth
 
 const CHORD_OCTAVE_BASE = 48;
 const MELODY_PITCH_MIN = 60;
 const MELODY_PITCH_MAX = 83;
-// Cap how far consecutive melody notes can leap (in semitones), so the melody
-// doesn't jump around unpredictably between the chord tones of a bar.
-const MAX_MELODY_INTERVAL = 7; // a perfect fifth
 
 function pickWeighted<T>(entries: [T, number][], rng: () => number): T {
   const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
@@ -75,14 +75,19 @@ function candidatePitchesForChord(pitchClasses: number[]): number[] {
   return candidates;
 }
 
-// Picks the next melody pitch, preferring candidates within MAX_MELODY_INTERVAL
-// of the previous note; falls back to the closest candidate if none qualify
-// (e.g. right after a chord change to a distant chord).
-function pickNextMelodyPitch(candidates: number[], prevPitch: number | null, rng: () => number): number {
+// Picks the next melody pitch, preferring candidates within maxInterval
+// semitones of the previous note; falls back to the closest candidate if none
+// qualify (e.g. right after a chord change to a distant chord).
+function pickNextMelodyPitch(
+  candidates: number[],
+  prevPitch: number | null,
+  maxInterval: number,
+  rng: () => number,
+): number {
   if (prevPitch === null) {
     return candidates[Math.floor(rng() * candidates.length)];
   }
-  const nearby = candidates.filter((p) => Math.abs(p - prevPitch) <= MAX_MELODY_INTERVAL);
+  const nearby = candidates.filter((p) => Math.abs(p - prevPitch) <= maxInterval);
   const pool =
     nearby.length > 0
       ? nearby
@@ -95,12 +100,13 @@ function generateMelodyForBar(
   barIndex: number,
   rng: () => number,
   prevPitch: number | null,
+  maxInterval: number,
 ): { notes: MelodyNote[]; lastPitch: number | null } {
   const notes: MelodyNote[] = [];
   const candidates = candidatePitchesForChord(pitchClasses);
   for (let s = 0; s < STEPS_PER_BAR; s++) {
     if (rng() >= NOTE_PROBABILITY) continue;
-    const pitch = pickNextMelodyPitch(candidates, prevPitch, rng);
+    const pitch = pickNextMelodyPitch(candidates, prevPitch, maxInterval, rng);
     notes.push({
       pitch,
       startStep: barIndex * STEPS_PER_BAR + s,
@@ -115,10 +121,12 @@ export function generatePhrase(opts: {
   rootPitchClass: number;
   bars: number;
   tempoBpm?: number;
+  maxMelodyInterval?: number;
   rng?: () => number;
 }): Phrase {
   const rng = opts.rng ?? Math.random;
   const tempoBpm = opts.tempoBpm ?? DEFAULT_TEMPO_BPM;
+  const maxMelodyInterval = opts.maxMelodyInterval ?? DEFAULT_MAX_MELODY_INTERVAL;
   const functionSequence = generateFunctionSequence(opts.bars, rng);
 
   const chords: ChordEvent[] = [];
@@ -140,7 +148,7 @@ export function generatePhrase(opts: {
       function: fn,
       notes: pitchClasses.map((pc) => CHORD_OCTAVE_BASE + pc),
     });
-    const melody = generateMelodyForBar(pitchClasses, bar, rng, prevPitch);
+    const melody = generateMelodyForBar(pitchClasses, bar, rng, prevPitch, maxMelodyInterval);
     melodyNotes.push(...melody.notes);
     prevPitch = melody.lastPitch;
   }

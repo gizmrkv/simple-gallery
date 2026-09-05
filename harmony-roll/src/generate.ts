@@ -34,7 +34,11 @@ export const NOTE_PROBABILITY = 0.8;
 export const DEFAULT_TEMPO_BPM = 100;
 
 const CHORD_OCTAVE_BASE = 48;
-const MELODY_OCTAVE_BASE = 60;
+const MELODY_PITCH_MIN = 60;
+const MELODY_PITCH_MAX = 83;
+// Cap how far consecutive melody notes can leap (in semitones), so the melody
+// doesn't jump around unpredictably between the chord tones of a bar.
+const MAX_MELODY_INTERVAL = 7; // a perfect fifth
 
 function pickWeighted<T>(entries: [T, number][], rng: () => number): T {
   const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
@@ -62,23 +66,49 @@ function generateFunctionSequence(bars: number, rng: () => number): HarmonicFunc
   return seq;
 }
 
+// All MIDI pitches in the melody register (two octaves) matching one of the chord's pitch classes.
+function candidatePitchesForChord(pitchClasses: number[]): number[] {
+  const candidates: number[] = [];
+  for (let midi = MELODY_PITCH_MIN; midi <= MELODY_PITCH_MAX; midi++) {
+    if (pitchClasses.includes(midi % 12)) candidates.push(midi);
+  }
+  return candidates;
+}
+
+// Picks the next melody pitch, preferring candidates within MAX_MELODY_INTERVAL
+// of the previous note; falls back to the closest candidate if none qualify
+// (e.g. right after a chord change to a distant chord).
+function pickNextMelodyPitch(candidates: number[], prevPitch: number | null, rng: () => number): number {
+  if (prevPitch === null) {
+    return candidates[Math.floor(rng() * candidates.length)];
+  }
+  const nearby = candidates.filter((p) => Math.abs(p - prevPitch) <= MAX_MELODY_INTERVAL);
+  const pool =
+    nearby.length > 0
+      ? nearby
+      : [candidates.reduce((closest, p) => (Math.abs(p - prevPitch) < Math.abs(closest - prevPitch) ? p : closest))];
+  return pool[Math.floor(rng() * pool.length)];
+}
+
 function generateMelodyForBar(
   pitchClasses: number[],
   barIndex: number,
   rng: () => number,
-): MelodyNote[] {
+  prevPitch: number | null,
+): { notes: MelodyNote[]; lastPitch: number | null } {
   const notes: MelodyNote[] = [];
+  const candidates = candidatePitchesForChord(pitchClasses);
   for (let s = 0; s < STEPS_PER_BAR; s++) {
     if (rng() >= NOTE_PROBABILITY) continue;
-    const pc = pitchClasses[Math.floor(rng() * pitchClasses.length)];
-    const octaveOffset = rng() < 0.5 ? 0 : 12;
+    const pitch = pickNextMelodyPitch(candidates, prevPitch, rng);
     notes.push({
-      pitch: MELODY_OCTAVE_BASE + pc + octaveOffset,
+      pitch,
       startStep: barIndex * STEPS_PER_BAR + s,
       durationSteps: 1,
     });
+    prevPitch = pitch;
   }
-  return notes;
+  return { notes, lastPitch: prevPitch };
 }
 
 export function generatePhrase(opts: {
@@ -93,6 +123,7 @@ export function generatePhrase(opts: {
 
   const chords: ChordEvent[] = [];
   const melodyNotes: MelodyNote[] = [];
+  let prevPitch: number | null = null;
 
   for (let bar = 0; bar < opts.bars; bar++) {
     const fn = functionSequence[bar];
@@ -109,7 +140,9 @@ export function generatePhrase(opts: {
       function: fn,
       notes: pitchClasses.map((pc) => CHORD_OCTAVE_BASE + pc),
     });
-    melodyNotes.push(...generateMelodyForBar(pitchClasses, bar, rng));
+    const melody = generateMelodyForBar(pitchClasses, bar, rng, prevPitch);
+    melodyNotes.push(...melody.notes);
+    prevPitch = melody.lastPitch;
   }
 
   return {

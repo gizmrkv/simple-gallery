@@ -1,0 +1,5 @@
+.venv/
+data/raw/
+data/words.csv
+results/
+__pycache__/

@@ -27,6 +27,7 @@ GitHub Pagesは1リポジトリにつき1サイトしか持てない。そのた
 | [puyo](./puyo/) | [/puyo/](https://gizmrkv.github.io/simple-gallery/puyo/) | — | 同色4つ以上を連結して消す落ちものパズル |
 | [tetris](./tetris/) | [/tetris/](https://gizmrkv.github.io/simple-gallery/tetris/) | — | 落ちてくるテトロミノを揃えてラインを消す定番の落ちものパズル |
 | [harmony-roll](./harmony-roll/) | [/harmony-roll/](https://gizmrkv.github.io/simple-gallery/harmony-roll/) | — | 機能和声の状態遷移をランダムウォークしてメロディと伴奏コードを自動生成するピアノロール風デモ |
+| [lang-guess](./lang-guess/) | [/lang-guess/](https://gizmrkv.github.io/simple-gallery/lang-guess/) | — | 入力した単語(ローマ字化言語含む31言語)の言語をブラウザ上のONNXモデルで推定するデモ |
 
 ## 設計
 

@@ -95,13 +95,13 @@ def verify(model: CharCNN, max_len: int) -> None:
     # 複数言語から実単語を数個ずつ拾い、生成済みunk文字列も数個混ぜる
     seen_langs: set[str] = set()
     samples: list[tuple[str, str]] = []
-    for word, lang in test_rows:
+    for word, lang, _all_labels in test_rows:
         if lang == "unk":
             continue
         if lang not in seen_langs and len(samples) < 10:
             samples.append((word, lang))
             seen_langs.add(lang)
-    for word, lang in test_rows:
+    for word, lang, _all_labels in test_rows:
         if lang == "unk" and sum(1 for _, l in samples if l == "unk") < 2:
             samples.append((word, lang))
 

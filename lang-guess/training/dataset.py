@@ -36,28 +36,44 @@ def encode_word(word: str, max_len: int = MAX_LEN) -> list[int]:
     return ids
 
 
-def load_rows(csv_path: Path) -> list[tuple[str, str]]:
+def load_rows(csv_path: Path) -> list[tuple[str, str, tuple[str, ...]]]:
     """data/words.csvを読み込む。CSV自体は元の言語コード(統合前)のままなので、
     ここでDROPPED_LANGSの行を除外し、LABEL_MERGE_MAPで統合後のラベルに読み替える
-    (constants.pyのコメント参照)。"""
-    rows: list[tuple[str, str]] = []
+    (constants.pyのコメント参照)。
+
+    同じ単語が複数言語の単語リストに(綴りが同じ借用語・同形語として)重複登場する
+    ケースが実データの12%程度を占めるため、単語ごとにグルーピングして
+    (word, primary, all_labels)を返す。primaryはall_labelsをソートした先頭で、
+    stratified_split()の層化バケツ分けにのみ使う代表値。実際の教師信号として
+    使うのはall_labels(LangIdDataset側でソフトラベルに変換する)。"""
+    word_labels: dict[str, set[str]] = defaultdict(set)
     with csv_path.open(encoding="utf-8") as f:
         reader = csv.reader(f)
         next(reader)  # header
         for word, lang in reader:
             if lang in DROPPED_LANGS:
                 continue
-            rows.append((word, LABEL_MERGE_MAP.get(lang, lang)))
+            word_labels[word].add(LABEL_MERGE_MAP.get(lang, lang))
+
+    rows: list[tuple[str, str, tuple[str, ...]]] = []
+    for word, labels in word_labels.items():
+        all_labels = tuple(sorted(labels))
+        rows.append((word, all_labels[0], all_labels))
     return rows
 
 
 def stratified_split(
-    rows: list[tuple[str, str]],
+    rows: list[tuple[str, str, tuple[str, ...]]],
     val_frac: float = 0.1,
     test_frac: float = 0.1,
     seed: int = 42,
-) -> tuple[list[tuple[str, str]], list[tuple[str, str]], list[tuple[str, str]]]:
-    """各言語クラスごとに80/10/10でtrain/val/testに分割する(層化サンプリング)。"""
+) -> tuple[
+    list[tuple[str, str, tuple[str, ...]]],
+    list[tuple[str, str, tuple[str, ...]]],
+    list[tuple[str, str, tuple[str, ...]]],
+]:
+    """各行のprimaryラベル(row[1])ごとに80/10/10でtrain/val/testに分割する
+    (層化サンプリング)。"""
     rng = random.Random(seed)
     by_lang: dict[str, list[tuple[str, str]]] = defaultdict(list)
     for row in rows:
@@ -81,18 +97,31 @@ def stratified_split(
 
 
 class LangIdDataset(Dataset):
-    """(単語, 言語)のペアのリストから、文字ID列とラベルIDのテンソルを返すDataset。"""
+    """(単語, primary, all_labels)のリストから、文字ID列・ソフトラベル確率ベクトル・
+    primaryラベルIDのテンソルを返すDataset。
 
-    def __init__(self, rows: list[tuple[str, str]], max_len: int = MAX_LEN) -> None:
+    単語が複数言語に有効な場合(all_labelsが複数要素)、確率質量を均等に分配した
+    ソフトラベルにする。単一言語にしか登場しない単語(大半)は従来通りone-hotになる。
+    primaryはtrain.py側の言語別集計(クラス重み・per-language精度)のバケツ分けに使う。"""
+
+    def __init__(
+        self, rows: list[tuple[str, str, tuple[str, ...]]], max_len: int = MAX_LEN
+    ) -> None:
         self.rows = rows
         self.max_len = max_len
 
     def __len__(self) -> int:
         return len(self.rows)
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
-        word, lang = self.rows[idx]
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        word, primary, all_labels = self.rows[idx]
         ids = encode_word(word, self.max_len)
-        return torch.tensor(ids, dtype=torch.long), torch.tensor(
-            _LABEL_TO_ID[lang], dtype=torch.long
+        target = torch.zeros(len(LABELS), dtype=torch.float32)
+        mass = 1.0 / len(all_labels)
+        for lab in all_labels:
+            target[_LABEL_TO_ID[lab]] = mass
+        return (
+            torch.tensor(ids, dtype=torch.long),
+            target,
+            torch.tensor(_LABEL_TO_ID[primary], dtype=torch.long),
         )

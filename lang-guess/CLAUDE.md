@@ -13,8 +13,10 @@
 
 - ONNXモデルの入力: 名前`"input"`、dtype`int64`、shape`[1, max_len]`
   (文字ID列、`vocab.json`の`pad_id`でパディング)。
-- ONNXモデルの出力: 名前`"logits"`、dtype`float32`、shape`[1, 31]`
-  (softmax前の生logits。softmaxはフロントエンド側[src/inference.ts](src/inference.ts)で行う)。
+- ONNXモデルの出力: 名前`"logits"`、dtype`float32`、shape`[1, クラス数]`
+  (クラス数は`training/constants.py`の`LABELS`の長さ、softmax前の生logits。
+  softmaxはフロントエンド側[src/inference.ts](src/inference.ts)で行う)。
+  固定値ではなく`vocab.json`の`labels`の長さから決まる。
 - `public/model/vocab.json`: `char_to_id`(文字→ID)・`pad_id`・`unk_char_id`・
   `max_len`・`labels`(出力インデックス順の言語コード一覧)を持つ。
   [src/tokenize.ts](src/tokenize.ts)はこのJSONの値をそのまま使ってエンコードするので、

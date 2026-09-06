@@ -20,7 +20,7 @@ from pathlib import Path
 import torch
 from torch.utils.data import Dataset
 
-from constants import CHAR_TO_ID, LABELS, PAD_ID, UNK_CHAR_ID
+from constants import CHAR_TO_ID, DROPPED_LANGS, LABEL_MERGE_MAP, LABELS, PAD_ID, UNK_CHAR_ID
 
 MAX_LEN = 20
 
@@ -37,12 +37,17 @@ def encode_word(word: str, max_len: int = MAX_LEN) -> list[int]:
 
 
 def load_rows(csv_path: Path) -> list[tuple[str, str]]:
+    """data/words.csvを読み込む。CSV自体は元の言語コード(統合前)のままなので、
+    ここでDROPPED_LANGSの行を除外し、LABEL_MERGE_MAPで統合後のラベルに読み替える
+    (constants.pyのコメント参照)。"""
     rows: list[tuple[str, str]] = []
     with csv_path.open(encoding="utf-8") as f:
         reader = csv.reader(f)
         next(reader)  # header
         for word, lang in reader:
-            rows.append((word, lang))
+            if lang in DROPPED_LANGS:
+                continue
+            rows.append((word, LABEL_MERGE_MAP.get(lang, lang)))
     return rows
 
 

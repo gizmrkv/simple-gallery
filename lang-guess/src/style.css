@@ -203,6 +203,45 @@ button:disabled {
   text-align: left;
 }
 
+.ranking-item {
+  margin-bottom: 0.3rem;
+}
+
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ranking-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ranking-chevron {
+  width: 1em;
+  flex-shrink: 0;
+  color: #888;
+  transition: transform 0.2s ease;
+}
+
+.ranking-chevron.invisible {
+  visibility: hidden;
+}
+
+.ranking-header-toggleable {
+  cursor: pointer;
+}
+
+.ranking-header.expanded .ranking-chevron {
+  transform: rotate(90deg);
+}
+
+.ranking-detail {
+  margin: 0.3rem 0 0.9rem 1.5em;
+  font-size: 0.9rem;
+}
+
 .confidence-bar {
   height: 8px;
   background: #444;

@@ -72,7 +72,7 @@ form.addEventListener('submit', async (e) => {
       .map((label, i) => ({ label, prob: probs[i] }))
       .sort((a, b) => b.prob - a.prob);
 
-    renderRanking(ranked);
+    renderRanking(ranked, word);
 
     const topLabel = ranked[0].label;
     const topLabelIndex = vocab.labels.indexOf(topLabel);
@@ -102,20 +102,71 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
-function renderRanking(ranked: { label: string; prob: number }[]) {
+function renderRanking(ranked: { label: string; prob: number }[], word: string) {
   rankingList.innerHTML = '';
-  ranked.slice(0, TOP_N).forEach(({ label, prob }) => {
+  ranked.slice(0, TOP_N).forEach(({ label, prob }, index) => {
     const percentage = (prob * 100).toFixed(1);
+    // 1位は本文の文字クリック探索で既に「なぜこの言語か」を表示しているので、
+    // ここでの開閉トグルは2位以下(とunk以外)にだけ付ける。
+    const toggleable = label !== 'unk' && index !== 0;
+
     const item = document.createElement('div');
-    item.innerHTML = `
-      <div class="confidence-label">
-        <span>${languageName(label)}</span>
-        <span>${percentage}%</span>
-      </div>
-      <div class="confidence-bar">
-        <div class="confidence-fill" style="width: ${percentage}%"></div>
+    item.className = 'ranking-item';
+
+    const header = document.createElement('div');
+    header.className = 'ranking-header' + (toggleable ? ' ranking-header-toggleable' : '');
+    header.innerHTML = `
+      <div class="ranking-row">
+        <span class="ranking-chevron${toggleable ? '' : ' invisible'}">▸</span>
+        <div class="ranking-main">
+          <div class="confidence-label">
+            <span>${languageName(label)}</span>
+            <span>${percentage}%</span>
+          </div>
+          <div class="confidence-bar">
+            <div class="confidence-fill" style="width: ${percentage}%"></div>
+          </div>
+        </div>
       </div>
     `;
+    item.appendChild(header);
+
+    if (toggleable) {
+      const detail = document.createElement('div');
+      detail.className = 'ranking-detail hidden';
+      item.appendChild(detail);
+
+      // クリックのたびに毎回推論し直さないよう、開いたラベルの窓スコアは
+      // このアコーディオン内だけで使い回す(予測が変わればitemごと作り直される)。
+      let windows: WindowScore[] | null = null;
+      header.addEventListener('click', async () => {
+        const nowHidden = detail.classList.toggle('hidden');
+        header.classList.toggle('expanded', !nowHidden);
+        if (nowHidden || windows !== null) return;
+
+        detail.textContent = '計算中...';
+        try {
+          const labelIndex = vocab!.labels.indexOf(label);
+          windows = await computeWindowScores(word, vocab!, predictor, labelIndex);
+        } catch (error) {
+          detail.textContent = '計算に失敗しました。';
+          console.error(error);
+          return;
+        }
+
+        const win = bestWindow(windows);
+        detail.innerHTML = '';
+        if (win && examples) {
+          detail.appendChild(buildExamplesSection(label, word, win));
+        } else {
+          const empty = document.createElement('p');
+          empty.className = 'examples-empty';
+          empty.textContent = '判定の決め手になる部分文字列が見つかりませんでした。';
+          detail.appendChild(empty);
+        }
+      });
+    }
+
     rankingList.appendChild(item);
   });
 }
@@ -178,34 +229,39 @@ function renderExampleChip(word: string, substring: string): HTMLElement {
   return chip;
 }
 
-function renderExamples(win: WindowScore | null) {
-  examplesDisplay.innerHTML = '';
-  if (!win || !examples || currentTopLabel === 'unk') {
-    return;
-  }
-
-  const substring = currentWord.slice(win.start, win.start + win.length);
-  const matches = findExamples(examples, currentTopLabel, substring, EXAMPLES_LIMIT, currentWord);
+function buildExamplesSection(label: string, word: string, win: WindowScore): HTMLElement {
+  const container = document.createElement('div');
+  const substring = word.slice(win.start, win.start + win.length);
+  const matches = findExamples(examples!, label, substring, EXAMPLES_LIMIT, word);
 
   const heading = document.createElement('p');
   heading.className = 'examples-heading';
-  heading.innerHTML = `<strong>${languageName(currentTopLabel)}</strong>には「${substring}」を含む単語がよくあります:`;
-  examplesDisplay.appendChild(heading);
+  heading.innerHTML = `<strong>${languageName(label)}</strong>には「${substring}」を含む単語がよくあります:`;
+  container.appendChild(heading);
 
   if (matches.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'examples-empty';
     empty.textContent = '手元のサンプルの中には似た単語が見つかりませんでした。';
-    examplesDisplay.appendChild(empty);
-    return;
+    container.appendChild(empty);
+    return container;
   }
 
   const chipList = document.createElement('div');
   chipList.className = 'example-chip-list';
-  for (const word of matches) {
-    chipList.appendChild(renderExampleChip(word, substring));
+  for (const w of matches) {
+    chipList.appendChild(renderExampleChip(w, substring));
   }
-  examplesDisplay.appendChild(chipList);
+  container.appendChild(chipList);
+  return container;
+}
+
+function renderExamples(win: WindowScore | null) {
+  examplesDisplay.innerHTML = '';
+  if (!win || !examples || currentTopLabel === 'unk') {
+    return;
+  }
+  examplesDisplay.appendChild(buildExamplesSection(currentTopLabel, currentWord, win));
 }
 
 init();

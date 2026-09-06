@@ -7,6 +7,15 @@ export_onnx.pyが書き出すvocab.jsonの内容も連動して変わるので�
 
 from __future__ import annotations
 
+# hermitdave/FrequencyWordsから実際にダウンロードする生の言語コード(27言語、
+# 統合/除外を行う前)。prepare_data.pyのダウンロード先URL組み立てにのみ使う。
+# 下のLATIN_LANGS(統合後、モデルのクラスに対応)とは別物なので注意。
+RAW_LATIN_LANGS: list[str] = [
+    "en", "es", "fr", "de", "it", "pt", "nl", "sv", "no", "da",
+    "fi", "is", "pl", "cs", "sk", "sl", "hr", "hu", "ro", "tr",
+    "id", "ms", "vi", "ca", "eu", "lt", "lv",
+]
+
 # ラベル順序(出力ロジットのインデックスと対応)。src/labels.tsのLANGUAGE_NAMESと
 # 同じ言語コード・同じ並び順にしてある(必須ではないが対応を追いやすくするため)。
 #

@@ -31,6 +31,7 @@ GitHub Pagesは1リポジトリにつき1サイトしか持てない。そのた
 | [simple-color-clustering](./simple-color-clustering/) | [/simple-color-clustering/](https://gizmrkv.github.io/simple-gallery/simple-color-clustering/) | [simple-color-clustering](https://github.com/gizmrkv/simple-color-clustering) | 画像をCIELAB色空間でk-means++クラスタリングし、テーマカラーを抽出するデモ |
 | [simple-grid-index](./simple-grid-index/) | [/simple-grid-index/](https://gizmrkv.github.io/simple-gallery/simple-grid-index/) | [simple-grid-index](https://github.com/gizmrkv/simple-grid-index) | 空間グリッドで衝突判定する円の反射シミュレーション(Godot版からTSへ移植) |
 | [simple-turing-pattern](./simple-turing-pattern/) | [/simple-turing-pattern/](https://gizmrkv.github.io/simple-gallery/simple-turing-pattern/) | [simple-turing-pattern](https://github.com/gizmrkv/simple-turing-pattern) | Gray-Scott反応拡散方程式によるチューリングパターン生成デモ(Godot版からTSへ移植) |
+| [simple-noise](./simple-noise/) | [/simple-noise/](https://gizmrkv.github.io/simple-gallery/simple-noise/) | [simple-noise](https://github.com/gizmrkv/simple-noise) | 各種ノイズ関数とフラクタル合成モードで2Dノイズ場を可視化するデモ(Godot版からTSへ移植) |
 
 ## 設計
 

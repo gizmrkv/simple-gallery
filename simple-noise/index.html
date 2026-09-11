@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Noise Field Visualizer</title>
+    <meta
+      name="description"
+      content="Perlin/Simplex/Cellularなどのノイズ関数とフラクタル合成モードを切り替えながら2Dノイズ場をリアルタイムに可視化するデモ。"
+    />
+  </head>
+  <body>
+    <div class="layout">
+      <div class="canvas-area">
+        <canvas id="canvas"></canvas>
+      </div>
+
+      <div class="panel">
+        <h1>Noise Field Visualizer</h1>
+        <p class="hint">FastNoiseLite風のノイズ場をCanvas2Dで可視化</p>
+
+        <div class="control-group">
+          <label>
+            <div class="label-text"><span>Noise Type</span></div>
+            <select id="noiseType"></select>
+          </label>
+
+          <label>
+            <div class="label-text"><span>Fractal Type</span></div>
+            <select id="fractalType"></select>
+          </label>
+
+          <label>
+            <div class="label-text"><span>Color Preset</span></div>
+            <select id="colorPreset"></select>
+          </label>
+
+          <label>
+            <div class="label-text"><span>Resolution</span></div>
+            <select id="resolution"></select>
+          </label>
+
+          <div class="divider"></div>
+
+          <label>
+            <div class="label-text">
+              <span>Frequency</span>
+              <span class="value-display" id="frequencyValue"></span>
+            </div>
+            <input
+              type="range"
+              id="frequency"
+              min="0.001"
+              max="1.0"
+              step="0.001"
+            />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Seed</span>
+            </div>
+            <input type="number" id="seed" min="0" max="2147483647" step="1" />
+          </label>
+
+          <div class="button-row">
+            <button id="randomizeSeed" type="button">Randomize Seed</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <label>
+            <div class="label-text">
+              <span>Octaves</span>
+              <span class="value-display" id="octavesValue"></span>
+            </div>
+            <input type="range" id="octaves" min="1" max="9" step="1" />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Lacunarity</span>
+              <span class="value-display" id="lacunarityValue"></span>
+            </div>
+            <input
+              type="range"
+              id="lacunarity"
+              min="0.1"
+              max="4.0"
+              step="0.01"
+            />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Gain</span>
+              <span class="value-display" id="gainValue"></span>
+            </div>
+            <input type="range" id="gain" min="0.0" max="1.0" step="0.01" />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Ping-Pong Strength</span>
+              <span class="value-display" id="pingPongStrengthValue"></span>
+            </div>
+            <input
+              type="range"
+              id="pingPongStrength"
+              min="0.0"
+              max="4.0"
+              step="0.01"
+            />
+          </label>
+
+          <div class="divider"></div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="animate" />
+            <span>Animate (Z = time)</span>
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Speed</span>
+              <span class="value-display" id="speedValue"></span>
+            </div>
+            <input type="range" id="speed" min="0.0" max="1.0" step="0.01" />
+          </label>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

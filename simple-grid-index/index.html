@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Grid Index</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div class="ui-container">
+      <h1>Simple Grid Index</h1>
+      <p class="subtitle">空間グリッドによる衝突判定の高速化</p>
+
+      <div class="control-group">
+        <label>
+          <div class="label-text">
+            <span>Circles</span>
+            <span class="value-display" id="circlesValue">500</span>
+          </div>
+          <input type="range" id="circles" min="0" max="20000" step="1" value="500" />
+        </label>
+
+        <label>
+          <div class="label-text">
+            <span>Speed</span>
+            <span class="value-display" id="speedValue">120</span>
+          </div>
+          <input type="range" id="speed" min="10" max="600" step="1" value="120" />
+        </label>
+
+        <div class="divider"></div>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="showGrid" />
+          <span>Show grid</span>
+        </label>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="bruteForce" />
+          <span>Brute force (no grid)</span>
+        </label>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="gravity" />
+          <span>Gravity</span>
+        </label>
+
+        <div class="divider"></div>
+
+        <div class="button-row">
+          <button id="pauseButton" type="button">Pause</button>
+          <button id="resetButton" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div class="stats" id="stats">
+        FPS: --
+        <br />Circles: --
+        <br />Contacts: --
+        <br />Pair tests: --
+        <br />Collide: -- ms
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

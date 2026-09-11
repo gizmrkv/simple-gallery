@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Turing Pattern (Gray-Scott)</title>
+    <meta
+      name="description"
+      content="Gray-Scott反応拡散方程式によるチューリングパターンの生成デモ。"
+    />
+  </head>
+  <body>
+    <div class="layout">
+      <div class="canvas-area">
+        <canvas id="canvas"></canvas>
+      </div>
+
+      <div class="panel">
+        <h1>Turing Pattern (Gray-Scott)</h1>
+        <p class="hint">Left drag: seed / Right drag: erase</p>
+
+        <div class="control-group">
+          <label>
+            <div class="label-text"><span>Preset</span></div>
+            <select id="preset"></select>
+          </label>
+
+          <label>
+            <div class="label-text"><span>Colormap</span></div>
+            <select id="colormap"></select>
+          </label>
+
+          <label>
+            <div class="label-text"><span>Resolution</span></div>
+            <select id="resolution"></select>
+          </label>
+
+          <div class="divider"></div>
+
+          <label>
+            <div class="label-text">
+              <span>Feed</span>
+              <span class="value-display" id="feedValue"></span>
+            </div>
+            <input type="range" id="feed" min="0" max="0.1" step="0.0001" />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Kill</span>
+              <span class="value-display" id="killValue"></span>
+            </div>
+            <input type="range" id="kill" min="0" max="0.073" step="0.0001" />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Du</span>
+              <span class="value-display" id="duValue"></span>
+            </div>
+            <input type="range" id="du" min="0" max="1.5" step="0.01" />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Dv</span>
+              <span class="value-display" id="dvValue"></span>
+            </div>
+            <input type="range" id="dv" min="0" max="1.0" step="0.01" />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Dt</span>
+              <span class="value-display" id="dtValue"></span>
+            </div>
+            <input type="range" id="dt" min="0.1" max="1.5" step="0.01" />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>steps/frame</span>
+              <span class="value-display" id="stepsValue"></span>
+            </div>
+            <input type="range" id="steps" min="1" max="20" step="1" />
+          </label>
+
+          <label>
+            <div class="label-text">
+              <span>Brush</span>
+              <span class="value-display" id="brushValue"></span>
+            </div>
+            <input type="range" id="brush" min="1" max="20" step="1" />
+          </label>
+
+          <div class="divider"></div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="running" checked />
+            <span>Running</span>
+          </label>
+
+          <div class="button-row">
+            <button id="stepButton" type="button">Step</button>
+            <button id="resetButton" type="button">Reset</button>
+          </div>
+          <div class="button-row">
+            <button id="randomButton" type="button">Random Seed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

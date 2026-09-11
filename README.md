@@ -28,6 +28,7 @@ GitHub Pagesは1リポジトリにつき1サイトしか持てない。そのた
 | [tetris](./tetris/) | [/tetris/](https://gizmrkv.github.io/simple-gallery/tetris/) | — | 落ちてくるテトロミノを揃えてラインを消す定番の落ちものパズル |
 | [harmony-roll](./harmony-roll/) | [/harmony-roll/](https://gizmrkv.github.io/simple-gallery/harmony-roll/) | — | 機能和声の状態遷移をランダムウォークしてメロディと伴奏コードを自動生成するピアノロール風デモ |
 | [lang-guess](./lang-guess/) | [/lang-guess/](https://gizmrkv.github.io/simple-gallery/lang-guess/) | — | 入力した単語(ローマ字化言語含む31言語)の言語をブラウザ上のONNXモデルで推定するデモ |
+| [simple-color-clustering](./simple-color-clustering/) | [/simple-color-clustering/](https://gizmrkv.github.io/simple-gallery/simple-color-clustering/) | [simple-color-clustering](https://github.com/gizmrkv/simple-color-clustering) | 画像をCIELAB色空間でk-means++クラスタリングし、テーマカラーを抽出するデモ |
 
 ## 設計
 

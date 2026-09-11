@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/simple-gallery/simple-noise/",
+  base: "/simple-gallery/grid-index/",
 });

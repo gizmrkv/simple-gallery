@@ -28,10 +28,10 @@ GitHub Pagesは1リポジトリにつき1サイトしか持てない。そのた
 | [tetris](./tetris/) | [/tetris/](https://gizmrkv.github.io/simple-gallery/tetris/) | — | 落ちてくるテトロミノを揃えてラインを消す定番の落ちものパズル |
 | [harmony-roll](./harmony-roll/) | [/harmony-roll/](https://gizmrkv.github.io/simple-gallery/harmony-roll/) | — | 機能和声の状態遷移をランダムウォークしてメロディと伴奏コードを自動生成するピアノロール風デモ |
 | [lang-guess](./lang-guess/) | [/lang-guess/](https://gizmrkv.github.io/simple-gallery/lang-guess/) | — | 入力した単語(ローマ字化言語含む31言語)の言語をブラウザ上のONNXモデルで推定するデモ |
-| [simple-color-clustering](./simple-color-clustering/) | [/simple-color-clustering/](https://gizmrkv.github.io/simple-gallery/simple-color-clustering/) | [simple-color-clustering](https://github.com/gizmrkv/simple-color-clustering) | 画像をCIELAB色空間でk-means++クラスタリングし、テーマカラーを抽出するデモ |
-| [simple-grid-index](./simple-grid-index/) | [/simple-grid-index/](https://gizmrkv.github.io/simple-gallery/simple-grid-index/) | [simple-grid-index](https://github.com/gizmrkv/simple-grid-index) | 空間グリッドで衝突判定する円の反射シミュレーション(Godot版からTSへ移植) |
-| [simple-turing-pattern](./simple-turing-pattern/) | [/simple-turing-pattern/](https://gizmrkv.github.io/simple-gallery/simple-turing-pattern/) | [simple-turing-pattern](https://github.com/gizmrkv/simple-turing-pattern) | Gray-Scott反応拡散方程式によるチューリングパターン生成デモ(Godot版からTSへ移植) |
-| [simple-noise](./simple-noise/) | [/simple-noise/](https://gizmrkv.github.io/simple-gallery/simple-noise/) | [simple-noise](https://github.com/gizmrkv/simple-noise) | 各種ノイズ関数とフラクタル合成モードで2Dノイズ場を可視化するデモ(Godot版からTSへ移植) |
+| [color-clustering](./color-clustering/) | [/color-clustering/](https://gizmrkv.github.io/simple-gallery/color-clustering/) | [simple-color-clustering](https://github.com/gizmrkv/simple-color-clustering) | 画像をCIELAB色空間でk-means++クラスタリングし、テーマカラーを抽出するデモ |
+| [grid-index](./grid-index/) | [/grid-index/](https://gizmrkv.github.io/simple-gallery/grid-index/) | [simple-grid-index](https://github.com/gizmrkv/simple-grid-index) | 空間グリッドで衝突判定する円の反射シミュレーション(Godot版からTSへ移植) |
+| [turing-pattern](./turing-pattern/) | [/turing-pattern/](https://gizmrkv.github.io/simple-gallery/turing-pattern/) | [simple-turing-pattern](https://github.com/gizmrkv/simple-turing-pattern) | Gray-Scott反応拡散方程式によるチューリングパターン生成デモ(Godot版からTSへ移植) |
+| [noise](./noise/) | [/noise/](https://gizmrkv.github.io/simple-gallery/noise/) | [simple-noise](https://github.com/gizmrkv/simple-noise) | 各種ノイズ関数とフラクタル合成モードで2Dノイズ場を可視化するデモ(Godot版からTSへ移植) |
 
 ## 設計
 

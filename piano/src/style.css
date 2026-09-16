@@ -54,7 +54,7 @@ body {
 .staff-svg {
   display: block;
   width: 100%;
-  max-width: 400px;
+  max-width: 460px;
   height: auto;
 }
 
@@ -67,6 +67,11 @@ body {
 .clef {
   fill: #1a1a1a;
   dominant-baseline: middle;
+}
+
+.key-sig-glyph {
+  fill: #1a1a1a;
+  font-size: 13px;
 }
 
 .notehead {

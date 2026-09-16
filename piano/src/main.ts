@@ -3,6 +3,7 @@ import { KEY_DEFS, BASE_MIDI } from "./keymap.ts";
 import { SCALES, NOTE_NAMES, scalePitchClasses, noteName } from "./scales.ts";
 import { Synth, type WaveformType } from "./audio.ts";
 import { StaffView } from "./staff.ts";
+import { keySignatureFor } from "./notation.ts";
 
 const WAVEFORMS: WaveformType[] = ["triangle", "sine", "square", "sawtooth"];
 
@@ -109,6 +110,7 @@ function updateScaleHighlight(): void {
     const pitchClass = ((BASE_MIDI + def.semitone) % 12 + 12) % 12;
     capElements.get(def.code)!.classList.toggle("in-scale", pitchClasses.has(pitchClass));
   }
+  staffView.setKeySignature(keySignatureFor(root, scale.name));
 }
 
 rootSelect.addEventListener("change", updateScaleHighlight);

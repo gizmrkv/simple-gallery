@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing Piano</title>
+    <meta
+      name="description"
+      content="PCキーボードで弾けるシンセピアノ。GarageBand/Ableton系の2段クロマチック配列を採用し、Shiftでのオクターブ切り替え、スケール表示、波形切り替えができる。"
+    />
+  </head>
+  <body>
+    <div class="layout">
+      <div class="keyboard-area">
+        <div id="keyboard"></div>
+        <p class="hint" id="octaveHint">Octave shift: +0</p>
+      </div>
+
+      <div class="panel">
+        <h1>Typing Piano</h1>
+        <p class="hint">PCキーボードでピアノを弾くデモ</p>
+
+        <div class="control-group">
+          <label>
+            <div class="label-text"><span>Waveform</span></div>
+            <select id="waveform"></select>
+          </label>
+
+          <label>
+            <div class="label-text"><span>Key (root)</span></div>
+            <select id="rootNote"></select>
+          </label>
+
+          <label>
+            <div class="label-text"><span>Scale</span></div>
+            <select id="scale"></select>
+          </label>
+        </div>
+
+        <div class="instructions">
+          <p>
+            下段(Z, S, X, D, C, ...)と上段(Q, 2, W, 3, E, ...)は、それぞれ
+            GarageBand/Ableton Liveなどで使われる配列と同じく、白鍵と黒鍵を
+            交互に並べて1オクターブ強を半音階(クロマチック)に弾けるように
+            なっている。
+          </p>
+          <p>
+            左Shiftを押しながら弾くと1オクターブ下、右Shiftを押しながら弾くと
+            1オクターブ上になる。
+          </p>
+          <p>
+            明るく表示されている鍵盤が、選択中のKey/Scaleに含まれる音。
+          </p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

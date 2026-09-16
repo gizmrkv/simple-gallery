@@ -32,6 +32,7 @@ GitHub Pagesは1リポジトリにつき1サイトしか持てない。そのた
 | [grid-index](./grid-index/) | [/grid-index/](https://gizmrkv.github.io/simple-gallery/grid-index/) | [simple-grid-index](https://github.com/gizmrkv/simple-grid-index) | 空間グリッドで衝突判定する円の反射シミュレーション(Godot版からTSへ移植) |
 | [turing-pattern](./turing-pattern/) | [/turing-pattern/](https://gizmrkv.github.io/simple-gallery/turing-pattern/) | [simple-turing-pattern](https://github.com/gizmrkv/simple-turing-pattern) | Gray-Scott反応拡散方程式によるチューリングパターン生成デモ(Godot版からTSへ移植) |
 | [noise](./noise/) | [/noise/](https://gizmrkv.github.io/simple-gallery/noise/) | [simple-noise](https://github.com/gizmrkv/simple-noise) | 各種ノイズ関数とフラクタル合成モードで2Dノイズ場を可視化するデモ(Godot版からTSへ移植) |
+| [piano](./piano/) | [/piano/](https://gizmrkv.github.io/simple-gallery/piano/) | — | PCキーボードで弾けるシンセピアノ。GarageBand/Ableton Live系の2段クロマチック配列を採用し、左右Shiftでのオクターブ切り替え、Key/Scaleに応じた鍵盤ハイライト、波形切り替えができる |
 
 ## 設計
 

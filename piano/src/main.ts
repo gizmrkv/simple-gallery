@@ -2,9 +2,11 @@ import "./style.css";
 import { KEY_DEFS, BASE_MIDI } from "./keymap.ts";
 import { SCALES, NOTE_NAMES, scalePitchClasses, noteName } from "./scales.ts";
 import { Synth, type WaveformType } from "./audio.ts";
+import { StaffView } from "./staff.ts";
 
 const WAVEFORMS: WaveformType[] = ["triangle", "sine", "square", "sawtooth"];
 
+const staffView = new StaffView(document.querySelector<HTMLDivElement>("#staff")!);
 const keyboardEl = document.querySelector<HTMLDivElement>("#keyboard")!;
 const octaveHintEl = document.querySelector<HTMLParagraphElement>("#octaveHint")!;
 const waveformSelect = document.querySelector<HTMLSelectElement>("#waveform")!;
@@ -118,13 +120,16 @@ updateScaleHighlight();
 const keyDefsByCode = new Map(KEY_DEFS.map((k) => [k.code, k]));
 
 function playKey(code: string, semitone: number): void {
-  synth.noteOn(code, BASE_MIDI + semitone + octaveShift, waveformSelect.value as WaveformType);
+  const midi = BASE_MIDI + semitone + octaveShift;
+  synth.noteOn(code, midi, waveformSelect.value as WaveformType);
   capElements.get(code)?.classList.add("active");
+  staffView.noteOn(code, midi);
 }
 
 function stopKey(code: string): void {
   synth.noteOff(code);
   capElements.get(code)?.classList.remove("active");
+  staffView.noteOff(code);
 }
 
 function isFormField(target: EventTarget | null): boolean {

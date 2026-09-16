@@ -45,6 +45,45 @@ body {
   padding: 32px 16px;
 }
 
+#staff {
+  background: #fdfdfd;
+  border-radius: 8px;
+  padding: 8px 4px;
+}
+
+.staff-svg {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+}
+
+.staff-line,
+.ledger-line {
+  stroke: #1a1a1a;
+  stroke-width: 1;
+}
+
+.clef {
+  fill: #1a1a1a;
+  dominant-baseline: middle;
+}
+
+.notehead {
+  fill: var(--accent);
+}
+
+.accidental {
+  fill: var(--accent);
+  font-size: 13px;
+}
+
+.note-name {
+  fill: var(--accent);
+  font-size: 9px;
+  font-weight: 600;
+}
+
 #keyboard {
   display: flex;
   flex-direction: column;

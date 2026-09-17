@@ -100,6 +100,12 @@ body {
   height: 72px;
 }
 
+.keyrow.flat {
+  position: static;
+  display: flex;
+  gap: 6px;
+}
+
 .keycap {
   position: absolute;
   top: 0;
@@ -127,6 +133,15 @@ body {
 .keycap.white.in-scale {
   background: var(--white-key);
   color: #1a1a1a;
+}
+
+.keycap.scale-key {
+  position: static;
+  width: 44px;
+  height: 72px;
+  background: var(--white-key);
+  color: #1a1a1a;
+  border: 1px solid var(--panel-border);
 }
 
 .keycap.black {

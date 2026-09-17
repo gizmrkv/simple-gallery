@@ -7,7 +7,7 @@
     <title>Typing Piano</title>
     <meta
       name="description"
-      content="PCキーボードで弾けるシンセピアノ。GarageBand/Ableton系の2段クロマチック配列を採用し、Shiftでのオクターブ切り替え、スケール表示、波形切り替えができる。"
+      content="PCキーボードで弾けるシンセピアノ。ピアノと同じ2段クロマチック配列と、全鍵が選択中のKey/Scaleの音になる作曲向けの白鍵だけの配列を切り替えられる。"
     />
   </head>
   <body>
@@ -23,6 +23,14 @@
         <p class="hint">PCキーボードでピアノを弾くデモ</p>
 
         <div class="control-group">
+          <label>
+            <div class="label-text"><span>Layout</span></div>
+            <select id="layoutMode">
+              <option value="piano">Piano (chromatic)</option>
+              <option value="scale">Scale (diatonic)</option>
+            </select>
+          </label>
+
           <label>
             <div class="label-text"><span>Waveform</span></div>
             <select id="waveform"></select>
@@ -41,17 +49,20 @@
 
         <div class="instructions">
           <p>
-            下段(Z, S, X, D, C, ...)と上段(Q, 2, W, 3, E, ...)は、それぞれ
+            <strong>Piano</strong>: 下段(Z, S, X, D, C, ...)と上段(Q, 2, W, 3, E, ...)は、
             GarageBand/Ableton Liveなどで使われる配列と同じく、白鍵と黒鍵を
-            交互に並べて1オクターブ強を半音階(クロマチック)に弾けるように
-            なっている。
+            交互に並べて1オクターブ強を半音階(クロマチック)に弾けるようになっている。
+            この場合、Key/Scaleは鍵盤のハイライトと楽譜の調号だけに反映され、実際の音は変わらない。
+          </p>
+          <p>
+            <strong>Scale</strong>: 元々白鍵だった19キーだけが使われ、
+            黒鍵だったキーは反応しなくなる。すべてのキーが選択中のKey/Scaleの
+            音階の音を順に鳴らすので、作曲や即興で「間違った音」を気にせず弾ける。
+            この場合はKey/Scaleを変えると実際に鳴る音も変わる。
           </p>
           <p>
             左Shiftを押しながら弾くと1オクターブ下、右Shiftを押しながら弾くと
             1オクターブ上になる。
-          </p>
-          <p>
-            明るく表示されている鍵盤が、選択中のKey/Scaleに含まれる音。
           </p>
           <p>
             押している鍵の音符が、上部の大譜表(ト音記号・ヘ音記号)にリアルタイムで表示される。

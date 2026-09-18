@@ -4,8 +4,10 @@ import {
   phraseDurationSeconds,
   DEFAULT_TEMPO_BPM,
   DEFAULT_MAX_MELODY_INTERVAL,
+  DEFAULT_SCALE_TYPE,
   type Phrase,
 } from "./generate.ts";
+import type { ScaleType } from "./theory.ts";
 import { playPhrase, type PlaybackHandle } from "./audio.ts";
 import { render, canvasWidth, canvasHeight } from "./render.ts";
 
@@ -15,6 +17,15 @@ const BPM_MIN = 60;
 const BPM_MAX = 200;
 const MAX_INTERVAL_MIN = 1;
 const MAX_INTERVAL_MAX = 12; // an octave
+const SCALE_OPTIONS: [ScaleType, string][] = [
+  ["major", "メジャー"],
+  ["naturalMinor", "ナチュラルマイナー"],
+  ["harmonicMinor", "ハーモニックマイナー"],
+];
+const SCALE_LABELS: Record<ScaleType, string> = Object.fromEntries(SCALE_OPTIONS) as Record<
+  ScaleType,
+  string
+>;
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas")!;
@@ -36,6 +47,14 @@ for (const bars of BAR_OPTIONS) {
   option.value = String(bars);
   option.textContent = `${bars}小節`;
   barsSelect.appendChild(option);
+}
+
+const scaleSelect = document.createElement("select");
+for (const [scaleType, label] of SCALE_OPTIONS) {
+  const option = document.createElement("option");
+  option.value = scaleType;
+  option.textContent = label;
+  scaleSelect.appendChild(option);
 }
 
 const bpmInput = document.createElement("input");
@@ -64,6 +83,7 @@ playButton.textContent = "Play";
 
 controls.append(
   rootSelect,
+  scaleSelect,
   barsSelect,
   bpmInput,
   bpmLabel,
@@ -76,6 +96,7 @@ app.insertBefore(controls, canvas);
 
 let phrase: Phrase = generatePhrase({
   rootPitchClass: 0,
+  scaleType: DEFAULT_SCALE_TYPE,
   bars: BAR_OPTIONS[0],
   tempoBpm: DEFAULT_TEMPO_BPM,
   maxMelodyInterval: DEFAULT_MAX_MELODY_INTERVAL,
@@ -98,13 +119,14 @@ function stopPlayback(): void {
 }
 
 function updateStatus(): void {
-  status.textContent = `Key: ${NOTE_NAMES[phrase.rootPitchClass]} major / ${phrase.bars} bars / ${phrase.tempoBpm} BPM`;
+  status.textContent = `Key: ${NOTE_NAMES[phrase.rootPitchClass]} ${SCALE_LABELS[phrase.scaleType]} / ${phrase.bars} bars / ${phrase.tempoBpm} BPM`;
 }
 
 function regenerate(): void {
   stopPlayback();
   phrase = generatePhrase({
     rootPitchClass: Number(rootSelect.value),
+    scaleType: scaleSelect.value as ScaleType,
     bars: Number(barsSelect.value),
     tempoBpm: Number(bpmInput.value),
     maxMelodyInterval: Number(maxIntervalInput.value),

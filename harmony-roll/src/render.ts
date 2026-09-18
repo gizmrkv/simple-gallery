@@ -1,5 +1,5 @@
 import type { HarmonicFunction } from "./theory.ts";
-import type { Phrase } from "./generate.ts";
+import { CHORD_REGISTER_MIN, MELODY_PITCH_MAX, type Phrase } from "./generate.ts";
 
 const STEP_PX = 24;
 const ROW_PX = 10;
@@ -8,8 +8,8 @@ const RIGHT_MARGIN = 8;
 const STRIP_H = 28;
 const TOP_MARGIN = STRIP_H + 4;
 const BOTTOM_MARGIN = 8;
-const PITCH_MIN = 48; // lowest possible chord note
-const PITCH_MAX = 83; // highest possible melody note
+const PITCH_MIN = CHORD_REGISTER_MIN; // lowest possible chord note
+const PITCH_MAX = MELODY_PITCH_MAX; // highest possible melody note
 
 const BLACK_KEY_PITCH_CLASSES = new Set([1, 3, 6, 8, 10]);
 
@@ -20,6 +20,7 @@ const FUNCTION_COLORS: Record<HarmonicFunction, string> = {
 };
 
 const MELODY_COLOR = "#facc15";
+const DECORATION_COLOR = "#fb923c";
 
 export function canvasWidth(phrase: Phrase): number {
   return LEFT_MARGIN + phrase.bars * phrase.stepsPerBar * STEP_PX + RIGHT_MARGIN;
@@ -105,8 +106,8 @@ function drawChordBlocks(ctx: CanvasRenderingContext2D, phrase: Phrase): void {
 }
 
 function drawMelodyNotes(ctx: CanvasRenderingContext2D, phrase: Phrase): void {
-  ctx.fillStyle = MELODY_COLOR;
   for (const note of phrase.melodyNotes) {
+    ctx.fillStyle = note.kind === "chord" ? MELODY_COLOR : DECORATION_COLOR;
     const x0 = stepToX(note.startStep);
     const x1 = stepToX(note.startStep + note.durationSteps);
     ctx.fillRect(x0 + 1, pitchToY(note.pitch) + 1, x1 - x0 - 2, ROW_PX - 2);

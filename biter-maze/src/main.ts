@@ -1,6 +1,6 @@
 import "./style.css";
 import { Ga, rankOrder } from "./ga.ts";
-import { WorkerEvaluator, extractFitness, type Evaluator } from "./evaluator.ts";
+import { EVAL_ABORTED, WorkerEvaluator, extractFitness, type Evaluator } from "./evaluator.ts";
 import { Pathfinder } from "./pathfinder.ts";
 import { computeFitness, countWalls, UNREACHED_SCORE } from "./fitness.ts";
 import { ChartRenderer, DetailRenderer, GalleryRenderer } from "./render.ts";
@@ -62,6 +62,7 @@ const ui = new Ui(state, {
   onLiveParamsChanged: () => {
     detailDirty = true;
   },
+  onSizeCommitted: () => reset(),
   onEditModeChanged: () => {
     editor.setEnabled(state.view.editMode);
     detailDirty = true;
@@ -73,7 +74,9 @@ const ui = new Ui(state, {
 
 function displayedGenome(): Uint8Array {
   if (state.view.editMode) return editor.buffer;
-  const n = state.mazeW * state.mazeH;
+  // サイズは必ず ga から取る。state.mazeW/H は「次に作り直すときのサイズ」でしかなく、
+  // 集団のバッファ配置とは別物なので、ここで混ぜると個体の境界をまたいで読んでしまう。
+  const n = ga.n;
   const idx = order[Math.min(selectedRank, ga.popSize - 1)];
   return snapshotPop.subarray(idx * n, (idx + 1) * n);
 }
@@ -98,7 +101,8 @@ function refreshDetail(force: boolean): void {
   lastDetailHash = hash;
   detailDirty = false;
 
-  const { mazeW: w, mazeH: h } = state;
+  const w = ga.w;
+  const h = ga.h;
   inspector.solveAll(walls, state.path, true);
 
   let worstLane = 0;
@@ -155,8 +159,8 @@ async function tick(): Promise<void> {
     const stats = await evaluator.evaluate(
       ga.population,
       ga.popSize,
-      state.mazeW,
-      state.mazeH,
+      ga.w,
+      ga.h,
       state.path,
       state.fit,
     );
@@ -184,8 +188,16 @@ async function tick(): Promise<void> {
 
     ga.setParams(state.ga);
     ga.advance(fitness);
-  } catch {
-    // 破棄されたジョブ（Reset / パラメータ変更）。次の tick が仕切り直す。
+  } catch (err) {
+    // Reset やパラメータ変更で破棄されたジョブは想定内。それ以外は握りつぶすと
+    // 「動いているのに何も変わらない」状態になるので、止めて表に出す。
+    const message = err instanceof Error ? err.message : String(err);
+    if (message !== EVAL_ABORTED) {
+      running = false;
+      ui.setRunning(false);
+      ui.setGalleryHint(`評価に失敗しました: ${message}`);
+      console.error("[biter-maze] evaluation failed", err);
+    }
   } finally {
     busy = false;
   }
@@ -261,7 +273,7 @@ function frame(now: number): void {
   );
   if (galleryDirty) {
     galleryDirty = false;
-    gallery.draw(snapshotPop, ga.popSize, state.mazeW, state.mazeH, order, selectedRank);
+    gallery.draw(snapshotPop, ga.popSize, ga.w, ga.h, order, selectedRank);
     chart.draw();
   }
   requestAnimationFrame(frame);

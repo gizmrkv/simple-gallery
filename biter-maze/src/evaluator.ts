@@ -8,6 +8,24 @@ import { evaluateChunk } from "./fitness.ts";
 import { STATS_STRIDE, type FitnessParams, type PathParams } from "./types.ts";
 import type { EvalRequest, EvalResponse } from "./eval.worker.ts";
 
+/** Reset やパラメータ変更でジョブを破棄したときの理由。これだけは握りつぶしてよい。 */
+export const EVAL_ABORTED = "eval-aborted";
+
+/**
+ * 集団バッファの配置と盤面サイズが食い違っていないか確かめる。
+ * 食い違うと TypedArray の subarray は例外を投げずに範囲をクランプするので、
+ * 個体の境界をまたいだゴミを黙って評価し続けることになる。必ず落とす。
+ */
+export function assertLayout(pop: Uint8Array, popSize: number, w: number, h: number): void {
+  const expected = popSize * w * h;
+  if (pop.length !== expected) {
+    throw new Error(
+      `集団バッファのサイズが盤面と食い違っている: ${pop.length} bytes, ` +
+        `期待値 ${expected} (popSize=${popSize}, ${w}x${h})`,
+    );
+  }
+}
+
 export interface Evaluator {
   readonly workerCount: number;
   evaluate(
@@ -35,6 +53,7 @@ export class SyncEvaluator implements Evaluator {
     path: PathParams,
     fit: FitnessParams,
   ): Promise<Float64Array> {
+    assertLayout(pop, popSize, w, h);
     if (!this.pf || this.pf.w !== w || this.pf.h !== h) this.pf = new Pathfinder(w, h);
     if (this.out.length !== popSize * STATS_STRIDE) {
       this.out = new Float64Array(popSize * STATS_STRIDE);
@@ -96,9 +115,10 @@ export class WorkerEvaluator implements Evaluator {
     path: PathParams,
     fit: FitnessParams,
   ): Promise<Float64Array> {
+    assertLayout(pop, popSize, w, h);
     // 走行中のジョブがあれば破棄する（パラメータ変更・リセット時）。
     this.token++;
-    if (this.job) this.job.reject(new Error("superseded"));
+    if (this.job) this.job.reject(new Error(EVAL_ABORTED));
 
     // チャンク数は worker 数の2倍。空いた worker に1つずつ投入して動的に均す。
     const chunks = Math.max(1, Math.min(popSize, this.workerCount * 2));
@@ -183,7 +203,7 @@ export class WorkerEvaluator implements Evaluator {
   dispose(): void {
     this.token++;
     if (this.job) {
-      this.job.reject(new Error("disposed"));
+      this.job.reject(new Error(EVAL_ABORTED));
       this.job = null;
     }
     for (const wk of this.workers) wk.terminate();

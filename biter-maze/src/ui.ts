@@ -35,6 +35,8 @@ export interface UiCallbacks {
   /** 経路探索・適応度・GA のパラメータ変更。全個体を毎世代再評価するので次世代から効く。 */
   onLiveParamsChanged(): void;
   onEditModeChanged(): void;
+  /** 迷路サイズの確定（スライダーを離したとき）。集団を作り直す必要がある。 */
+  onSizeCommitted(): void;
 }
 
 function el<T extends HTMLElement>(id: string): T {
@@ -75,8 +77,9 @@ export class Ui {
     // Reset で反映されるもの（集団を作り直す必要がある）は onChange を呼ばない。
     const noop = () => {};
 
-    this.range("mazeWidth", (v) => (state.mazeW = v), (v) => `${v}`, () => state.mazeW, noop);
-    this.range("mazeHeight", (v) => (state.mazeH = v), (v) => `${v}`, () => state.mazeH, noop);
+    const commitSize = cb.onSizeCommitted;
+    this.range("mazeWidth", (v) => (state.mazeW = v), (v) => `${v}`, () => state.mazeW, noop, commitSize);
+    this.range("mazeHeight", (v) => (state.mazeH = v), (v) => `${v}`, () => state.mazeH, noop, commitSize);
 
     const p = state.path;
     this.range("goalPressureRatio", (v) => (p.goalPressureRatio = v), (v) => v.toFixed(1), () => p.goalPressureRatio, live);
@@ -132,6 +135,7 @@ export class Ui {
     fmt: (v: number) => string,
     get: () => number,
     onChange: () => void,
+    onCommit?: () => void,
   ): void {
     const input = el<HTMLInputElement>(id);
     const display = document.getElementById(`${id}Value`);
@@ -144,6 +148,8 @@ export class Ui {
       if (display) display.textContent = fmt(get());
       onChange();
     });
+    // ドラッグ中は input が毎ピクセル飛ぶので、作り直しが要るものは change で確定させる。
+    if (onCommit) input.addEventListener("change", onCommit);
     this.syncers.push(sync);
   }
 

@@ -185,3 +185,25 @@ describe("Rng", () => {
     expect(new Rng(43).next()).not.toBe(new Rng(42).next());
   });
 });
+
+describe("Evaluator", () => {
+  it("集団バッファと盤面サイズの食い違いを黙って通さない", async () => {
+    // subarray は範囲をクランプして例外を投げないので、放置すると個体の境界を
+    // またいだゴミを評価し続ける。UI側でサイズを取り違えた事故の再発防止。
+    const ev = new SyncEvaluator();
+    const popSize = 4;
+    const pop = new Uint8Array(popSize * W * H);
+
+    await expect(
+      ev.evaluate(pop, popSize, W, H, DEFAULT_PATH_PARAMS, DEFAULT_FITNESS_PARAMS),
+    ).resolves.toBeInstanceOf(Float64Array);
+
+    // 同じバッファを別サイズの盤面として評価しようとしたら落ちること
+    await expect(
+      ev.evaluate(pop, popSize, W + 8, H, DEFAULT_PATH_PARAMS, DEFAULT_FITNESS_PARAMS),
+    ).rejects.toThrow(/食い違っている/);
+    await expect(
+      ev.evaluate(pop, popSize + 1, W, H, DEFAULT_PATH_PARAMS, DEFAULT_FITNESS_PARAMS),
+    ).rejects.toThrow(/食い違っている/);
+  });
+});

@@ -10,6 +10,17 @@ const COL_BROKEN = [239, 68, 68]; // --danger
 const CHEW_TILES = 2.5;
 
 /**
+ * 1ステップの左右移動量を -1/0/+1 に正規化する。
+ * 盤面の左右はつながっているので、端をまたぐステップの生の差は ±(w-1) になる。
+ */
+function stepDx(a: number, b: number, w: number): number {
+  let dx = (b % w) - (a % w);
+  if (dx > 1) dx -= w;
+  else if (dx < -1) dx += w;
+  return dx;
+}
+
+/**
  * CSS で大きさが決まる canvas のバッキングストアだけを合わせる。
  * style を書き戻さないのが肝。書き戻すと次フレームの計測値が自分の出力になり、
  * 大きさが収束して縮み続ける。
@@ -220,7 +231,7 @@ export class DetailRenderer {
       for (let i = 1; i < path.length; i++) {
         const a = path[i - 1];
         const b = path[i];
-        const dx = (b % w) - (a % w);
+        const dx = stepDx(a, b, w);
         const dy = ((b / w) | 0) - ((a / w) | 0);
         const dist = dx !== 0 && dy !== 0 ? Math.SQRT2 : 1;
         const chew = walls[b] ? CHEW_TILES : 0;
@@ -299,13 +310,6 @@ export class DetailRenderer {
     }
     ctx.stroke();
 
-    if (editMode) {
-      ctx.strokeStyle = "rgba(79, 70, 229, 0.9)";
-      ctx.lineWidth = 3;
-      ctx.strokeRect(0, 0, w * cell, h * cell);
-      return;
-    }
-
     const cx = (i: number) => ((i % w) + 0.5) * cell;
     const cy = (i: number) => (((i / w) | 0) + 0.5) * cell;
 
@@ -319,13 +323,27 @@ export class DetailRenderer {
       if (path.length < 2) continue;
       ctx.strokeStyle = s === worstLane ? "#4f46e5" : "rgba(79, 70, 229, 0.25)";
       ctx.beginPath();
-      ctx.moveTo(cx(path[0]), cy(path[0]));
-      for (let i = 1; i < path.length; i++) ctx.lineTo(cx(path[i]), cy(path[i]));
+      let px = (path[0] % w) + 0.5;
+      let py = ((path[0] / w) | 0) + 0.5;
+      ctx.moveTo(px * cell, py * cell);
+      for (let i = 1; i < path.length; i++) {
+        const dx = stepDx(path[i - 1], path[i], w);
+        const nx = (path[i] % w) + 0.5;
+        const ny = ((path[i] / w) | 0) + 0.5;
+        if (px + dx !== nx) {
+          // 端をまたいだ区間。いったん盤外まで引いて、反対の端から引き直す。
+          ctx.lineTo((px + dx) * cell, ny * cell);
+          ctx.moveTo((nx - dx) * cell, py * cell);
+        }
+        ctx.lineTo(nx * cell, ny * cell);
+        px = nx;
+        py = ny;
+      }
       ctx.stroke();
     }
 
     // バイター本体
-    if (biterSpeed > 0) {
+    if (biterSpeed > 0 && !editMode) {
       const r = Math.max(2, cell * 0.24);
       for (let s = 0; s < paths.length; s++) {
         if (!showAllLanes && s !== worstLane) continue;
@@ -353,7 +371,9 @@ export class DetailRenderer {
         } else {
           const dur = t[i] - moveStart;
           const k = dur > 0 ? (tau - moveStart) / dur : 1;
-          px = cx(prev) + (cx(next) - cx(prev)) * k;
+          // 連続座標で補間してから、左右方向だけ盤の中へ折り返す。
+          const vx = (prev % w) + 0.5 + stepDx(prev, next, w) * k;
+          px = (((vx % w) + w) % w) * cell;
           py = cy(prev) + (cy(next) - cy(prev)) * k;
         }
         ctx.fillStyle = s === worstLane ? "#fbbf24" : "#e5e7eb";
@@ -361,6 +381,12 @@ export class DetailRenderer {
         ctx.arc(px, py, r, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
+
+    if (editMode) {
+      ctx.strokeStyle = "rgba(79, 70, 229, 0.9)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(0, 0, w * cell, h * cell);
     }
   }
 }

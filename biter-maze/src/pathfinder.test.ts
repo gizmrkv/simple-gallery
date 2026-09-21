@@ -29,9 +29,9 @@ function refDijkstra(walls: Uint8Array, startX: number, p: PathParams, w = W, h 
         for (let dy = -1; dy <= 1; dy++) {
           for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dy === 0) continue;
-            const nx = x + dx;
             const ny = y + dy;
-            if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+            if (ny < 0 || ny >= h) continue;
+            const nx = (x + dx + w) % w; // 左右はつながっている
             if (walls[ny * w + nx]) near[i] = 1;
           }
         }
@@ -61,9 +61,9 @@ function refDijkstra(walls: Uint8Array, startX: number, p: PathParams, w = W, h 
         if (dx === 0 && dy === 0) continue;
         const diag = dx !== 0 && dy !== 0;
         if (diag && !p.allowDiagonal) continue;
-        const nx = ux + dx;
         const ny = uy + dy;
-        if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+        if (ny < 0 || ny >= h) continue;
+        const nx = (ux + dx + w) % w; // 左右はつながっている
         if (diag && (walls[uy * w + nx] || walls[ny * w + ux])) continue;
         const v = ny * w + nx;
         const pen =
@@ -133,26 +133,49 @@ describe("Pathfinder", () => {
 
   it("迂回が collisionPenalty を超えると壊して直進する（製品の核心）", () => {
     // 4近傍・gpr=1（admissible）なので最小コスト経路が保証され、手計算と厳密に一致する。
-    // y=1 を全幅の壁にし、gx にだけ隙間を開ける。start は x=15。
-    //   迂回 = |15-gx| + 15,  貫通 = 15 + 10 = 25
+    // 左右がつながっているため迂回距離は巡回距離 min(d, W-d)。W=16 では最大8で
+    // collisionPenalty=10 を超えられないので、この閾値テストだけ W=32 で行う。
     const p = params({ allowDiagonal: false, goalPressureRatio: 1 });
+    const w = 32;
+    // y=1 を全幅の壁にし、gapX にだけ隙間を開ける。start は x=0。
+    //   迂回 = min(gapX, 32-gapX) + 15,  貫通 = 15 + 10 = 25
+    const build = (gapX: number): Uint8Array => {
+      const walls = blank(w, H);
+      setRow(walls, 1, w);
+      walls[1 * w + gapX] = 0;
+      return walls;
+    };
 
-    const detour = blank();
-    setRow(detour, 1);
-    detour[1 * W + 6] = 0; // |dx| = 9 → 迂回 24 < 貫通 25
-    const pf1 = new Pathfinder(W, H);
-    pf1.solveAll(detour, p, false);
-    expect(pf1.laneBreaks[15]).toBe(0);
-    expect(pf1.laneTravel[15]).toBeCloseTo(24, 9);
+    const detour = new Pathfinder(w, H);
+    detour.solveAll(build(9), p, false); // 巡回距離9 → 迂回24 < 貫通25
+    expect(detour.laneBreaks[0]).toBe(0);
+    expect(detour.laneTravel[0]).toBeCloseTo(24, 9);
 
-    const breakThrough = blank();
-    setRow(breakThrough, 1);
-    breakThrough[1 * W + 4] = 0; // |dx| = 11 → 迂回 26 > 貫通 25
-    const pf2 = new Pathfinder(W, H);
-    pf2.solveAll(breakThrough, p, false);
-    expect(pf2.laneBreaks[15]).toBe(1);
-    expect(pf2.laneTravel[15]).toBeCloseTo(15, 9);
-    expect(pf2.laneCost[15]).toBeCloseTo(25, 9);
+    const breakThrough = new Pathfinder(w, H);
+    breakThrough.solveAll(build(11), p, false); // 巡回距離11 → 迂回26 > 貫通25
+    expect(breakThrough.laneBreaks[0]).toBe(1);
+    expect(breakThrough.laneTravel[0]).toBeCloseTo(15, 9);
+    expect(breakThrough.laneCost[0]).toBeCloseTo(25, 9);
+  });
+
+  it("左右はつながっているので盤の端を回り込んで迂回できる", () => {
+    // y=8 を全幅の壁にし、x=0 だけ開ける。start は x=15。
+    // 左右が独立なら迂回は横に15歩必要で貫通(25)のほうが安いが、
+    // つながっていれば x=15 → x=0 は1歩なので travel=16 で抜けられる。
+    const p = params({ allowDiagonal: false, goalPressureRatio: 1 });
+    const walls = blank();
+    setRow(walls, 8);
+    walls[8 * W + 0] = 0;
+    const pf = new Pathfinder(W, H);
+    pf.solveAll(walls, p, true);
+
+    expect(pf.laneBreaks[15]).toBe(0);
+    expect(pf.laneTravel[15]).toBeCloseTo(16, 9);
+    const path = Array.from(pf.pathOf(15));
+    expect(path.length).toBe(17); // 16歩 + 始点
+    const xs = path.map((i) => i % W);
+    expect(xs).toContain(15);
+    expect(xs).toContain(0);
   });
 
   it("角抜け禁止: 斜めにしか繋がっていない隙間は通れない", () => {
@@ -173,7 +196,7 @@ describe("Pathfinder", () => {
 
   it("extended penalty のヒット数が経路上の壁隣接タイル数と一致する", () => {
     const walls = blank();
-    walls[5 * W + 7] = 1;
+    walls[5 * W + 0] = 1; // 端に置く: x=15 が巡回で隣接する
     walls[9 * W + 9] = 1;
     const p = params({ extendedCollisionPenalty: 3 });
     const pf = new Pathfinder(W, H);
@@ -189,9 +212,9 @@ describe("Pathfinder", () => {
         for (let dy = -1; dy <= 1 && !adj; dy++) {
           for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dy === 0) continue;
-            const nx = x + dx;
             const ny = y + dy;
-            if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue;
+            if (ny < 0 || ny >= H) continue;
+            const nx = (x + dx + W) % W; // 左右はつながっている
             if (walls[ny * W + nx]) {
               adj = true;
               break;

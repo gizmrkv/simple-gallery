@@ -103,9 +103,10 @@ export class Ga {
     const x = this.rng.int(w);
     const y = this.rng.int(h);
     for (let k = 0; k < len; k++) {
-      const cx = horizontal ? x + k : x;
+      // 盤面の左右はつながっているので、横線は端で折り返す。縦線は盤外で止める。
+      const cx = horizontal ? (x + k) % w : x;
       const cy = horizontal ? y : y + k;
-      if (cx >= w || cy >= h) break;
+      if (cy >= h) break;
       buf[off + cy * w + cx] = value;
     }
   }
@@ -120,9 +121,7 @@ export class Ga {
       const cy = y + dy;
       if (cy >= h) break;
       for (let dx = 0; dx < rw; dx++) {
-        const cx = x + dx;
-        if (cx >= w) break;
-        buf[off + cy * w + cx] = value;
+        buf[off + cy * w + ((x + dx) % w)] = value;
       }
     }
   }
@@ -144,9 +143,10 @@ export class Ga {
     const { w, h, n, buffer, population } = this;
     buffer.set(population.subarray(aOff, aOff + n), dstOff);
 
+    // x範囲は巡回させる。左右がつながった盤面で矩形が端で切れると、
+    // x=0/x=w-1 の継ぎ目だけ組み換えが起きないという人工的な偏りが残るため。
     let x0 = this.rng.int(w);
-    let x1 = this.rng.int(w);
-    if (x0 > x1) [x0, x1] = [x1, x0];
+    let lx = this.rng.range(1, w);
     let y0 = this.rng.int(h);
     let y1 = this.rng.int(h);
     if (y0 > y1) [y0, y1] = [y1, y0];
@@ -154,7 +154,7 @@ export class Ga {
     // 3 種類のブロック交叉が、ノブを増やさずに出る。
     if (this.rng.bool(0.25)) {
       x0 = 0;
-      x1 = w - 1;
+      lx = w;
     }
     if (this.rng.bool(0.25)) {
       y0 = 0;
@@ -162,7 +162,8 @@ export class Ga {
     }
     for (let y = y0; y <= y1; y++) {
       const row = y * w;
-      for (let x = x0; x <= x1; x++) {
+      for (let i = 0; i < lx; i++) {
+        const x = (x0 + i) % w;
         buffer[dstOff + row + x] = population[bOff + row + x];
       }
     }

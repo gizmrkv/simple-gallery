@@ -3,6 +3,8 @@
 //
 // 核心: 壁は「通行不能」ではなく「コストを払えば通れる（＝壊して通る）」。
 // これが迷路設計の緊張のすべてを生んでいる。
+//
+// 盤面の左右はつながっている（円筒トポロジ）。wrapX のコメントを参照。
 import type { PathParams } from "./types.ts";
 
 const EPS = 1e-9;
@@ -11,6 +13,18 @@ const SQRT2 = Math.SQRT2;
 // 近傍オフセット。0-3 が直交、4-7 が斜め。
 const DX = [0, 0, -1, 1, -1, 1, -1, 1];
 const DY = [-1, 1, 0, 0, -1, -1, 1, 1];
+
+/**
+ * 盤面の左右はつながっている（x方向に巡回する円筒トポロジ）。
+ * 迷路は設計図として横方向に繰り返し建築される想定なので、同じ形の迷路が
+ * 左右に無限に並んでいるとしてシミュレートするのが実際の挙動に合う。
+ * 上下は巡回しない（上端がバイターの侵入口、下端がゴール）。
+ */
+function wrapX(x: number, w: number): number {
+  if (x < 0) return w - 1;
+  if (x >= w) return 0;
+  return x;
+}
 
 export class Pathfinder {
   readonly w: number;
@@ -101,9 +115,9 @@ export class Pathfinder {
         const i = y * w + x;
         if (walls[i]) continue;
         for (let k = 0; k < 8; k++) {
-          const nx = x + DX[k];
           const ny = y + DY[k];
-          if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+          if (ny < 0 || ny >= h) continue;
+          const nx = wrapX(x + DX[k], w);
           if (walls[ny * w + nx]) {
             nearWall[i] = 1;
             break;
@@ -166,9 +180,10 @@ export class Pathfinder {
       const ue = ext[u];
 
       for (let k = 0; k < neighborCount; k++) {
-        const nx = ux + DX[k];
         const ny = uy + DY[k];
-        if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+        if (ny < 0 || ny >= h) continue;
+        // 左右はつながっている。上下は盤外なので進入できない。
+        const nx = wrapX(ux + DX[k], w);
 
         // 角抜け禁止: 斜めは肩タイルの両方が非壁でないと通れない。
         // 壁が「通行可能」であっても、角で接する2枚の壁の対角の隙間は幅0でユニットは通れない。

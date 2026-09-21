@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Biter Maze Optimizer</title>
+    <meta
+      name="description"
+      content="Factorioのバイターの経路探索を再現し、壁を壊されずに最も長く迂回させる迷路を遺伝的アルゴリズムで探索するデモ。個体をクリックすると経路をシミュレーションでき、自作の迷路を集団に投入して競わせられる。"
+    />
+  </head>
+  <body>
+    <div class="layout">
+      <div class="canvas-area">
+        <div class="detail-area">
+          <canvas id="detail"></canvas>
+        </div>
+        <div class="gallery-area">
+          <div class="gallery-head">
+            <span>Population</span>
+            <span class="hint" id="galleryHint">適応度降順。クリックで個体を検査</span>
+          </div>
+          <canvas id="gallery"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h1>Biter Maze Optimizer</h1>
+        <p class="hint">
+          壁は通行不能ではなく「壊せば通れる」。壊されない範囲で最も長い迂回を強いる配置を探す。
+        </p>
+
+        <div class="control-group">
+          <div class="button-row">
+            <button id="runBtn" type="button" class="primary">Start</button>
+            <button id="stepBtn" type="button">Step</button>
+            <button id="resetBtn" type="button">Reset</button>
+          </div>
+
+          <div class="readout">
+            <div><span>Generation</span><span id="roGen">0</span></div>
+            <div><span>Best fitness</span><span id="roBest">-</span></div>
+            <div><span>Mean fitness</span><span id="roMean">-</span></div>
+            <div><span>Speed</span><span id="roSpeed">-</span></div>
+          </div>
+          <canvas id="chart" class="chart"></canvas>
+
+          <div class="divider"></div>
+          <h2>Selected individual</h2>
+          <div class="readout">
+            <div><span>Fitness</span><span id="roSelFit">-</span></div>
+            <div><span>Min / Mean score</span><span id="roSelScore">-</span></div>
+            <div><span>Walls broken</span><span id="roSelBreaks">-</span></div>
+            <div><span>Wall count</span><span id="roSelWalls">-</span></div>
+            <div><span>Worst lane</span><span id="roSelWorst">-</span></div>
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="showAllLanes" checked />
+            <span>Show all lanes（offで最弱レーンのみ）</span>
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Biter speed</span><span class="value-display" id="biterSpeedValue"></span>
+            </div>
+            <input type="range" id="biterSpeed" min="0" max="20" step="0.5" />
+          </label>
+
+          <div class="divider"></div>
+          <h2>Maze editor</h2>
+          <p class="hint">左ドラッグで壁、右ドラッグ/Shiftで消去。</p>
+          <label class="checkbox-row">
+            <input type="checkbox" id="editMode" />
+            <span>Edit mode</span>
+          </label>
+          <div class="button-row">
+            <button id="editCopyBtn" type="button">Copy from selected</button>
+            <button id="editClearBtn" type="button">Clear</button>
+          </div>
+          <div class="button-row">
+            <button id="injectBtn" type="button" class="primary">Inject into population</button>
+          </div>
+
+          <div class="divider"></div>
+          <h2>Maze</h2>
+          <p class="hint">サイズの変更は Reset で反映される。</p>
+          <label>
+            <div class="label-text">
+              <span>Width</span><span class="value-display" id="mazeWidthValue"></span>
+            </div>
+            <input type="range" id="mazeWidth" min="4" max="64" step="1" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Height</span><span class="value-display" id="mazeHeightValue"></span>
+            </div>
+            <input type="range" id="mazeHeight" min="4" max="64" step="1" />
+          </label>
+
+          <div class="divider"></div>
+          <h2>Pathfinder</h2>
+          <p class="hint">
+            既定値はFactorioの <code>map-settings</code> の <code>path_finder</code> 由来。
+          </p>
+          <label>
+            <div class="label-text">
+              <span>Goal pressure ratio</span>
+              <span class="value-display" id="goalPressureRatioValue"></span>
+            </div>
+            <input type="range" id="goalPressureRatio" min="1" max="5" step="0.1" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Collision penalty</span>
+              <span class="value-display" id="collisionPenaltyValue"></span>
+            </div>
+            <input type="range" id="collisionPenalty" min="0" max="50" step="0.5" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Subsequent collision penalty</span>
+              <span class="value-display" id="subsequentCollisionPenaltyValue"></span>
+            </div>
+            <input type="range" id="subsequentCollisionPenalty" min="0" max="50" step="0.5" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Extended collision penalty</span>
+              <span class="value-display" id="extendedCollisionPenaltyValue"></span>
+            </div>
+            <input type="range" id="extendedCollisionPenalty" min="0" max="5" step="0.25" />
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="allowDiagonal" checked />
+            <span>Allow diagonal（角抜けは常に禁止）</span>
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Max expansions</span>
+              <span class="value-display" id="maxExpansionsValue"></span>
+            </div>
+            <input type="range" id="maxExpansions" min="0" max="4000" step="100" />
+          </label>
+          <p class="hint">
+            <code>fwd2bwd_ratio</code>（双方向探索）は意図的に未実装。重み付きヒューリスティック下の
+            合流条件が非公開で、推測すると偽の忠実性になるため。
+          </p>
+
+          <div class="divider"></div>
+          <h2>Fitness</h2>
+          <label>
+            <div class="label-text">
+              <span>Alpha（min ⇄ mean）</span><span class="value-display" id="alphaValue"></span>
+            </div>
+            <input type="range" id="alpha" min="0" max="1" step="0.05" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Break penalty</span><span class="value-display" id="breakPenaltyValue"></span>
+            </div>
+            <input type="range" id="breakPenalty" min="0" max="100" step="1" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Wall cost</span><span class="value-display" id="wallCostValue"></span>
+            </div>
+            <input type="range" id="wallCost" min="0" max="1" step="0.01" />
+          </label>
+
+          <div class="divider"></div>
+          <h2>Genetic algorithm</h2>
+          <p class="hint">Population / Seed / Worker count の変更は Reset で反映される。</p>
+          <label>
+            <div class="label-text">
+              <span>Population</span><span class="value-display" id="popSizeValue"></span>
+            </div>
+            <input type="range" id="popSize" min="20" max="400" step="10" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Elite count</span><span class="value-display" id="eliteCountValue"></span>
+            </div>
+            <input type="range" id="eliteCount" min="0" max="20" step="1" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Tournament size</span>
+              <span class="value-display" id="tournamentSizeValue"></span>
+            </div>
+            <input type="range" id="tournamentSize" min="2" max="7" step="1" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Crossover rate</span><span class="value-display" id="crossoverRateValue"></span>
+            </div>
+            <input type="range" id="crossoverRate" min="0" max="1" step="0.01" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Mutation bits / genome</span>
+              <span class="value-display" id="mutationBitsValue"></span>
+            </div>
+            <input type="range" id="mutationBits" min="0" max="10" step="0.1" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Structural mutation rate</span>
+              <span class="value-display" id="structuralMutationRateValue"></span>
+            </div>
+            <input type="range" id="structuralMutationRate" min="0" max="1" step="0.01" />
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Immigrant rate</span><span class="value-display" id="immigrantRateValue"></span>
+            </div>
+            <input type="range" id="immigrantRate" min="0" max="0.2" step="0.01" />
+          </label>
+          <label>
+            <div class="label-text"><span>Seed</span></div>
+            <div class="button-row">
+              <input type="number" id="seed" min="0" step="1" />
+              <button id="randomSeedBtn" type="button">Randomize</button>
+            </div>
+          </label>
+          <label>
+            <div class="label-text">
+              <span>Worker count</span><span class="value-display" id="workerCountValue"></span>
+            </div>
+            <input type="range" id="workerCount" min="1" max="16" step="1" />
+          </label>
+          <p class="hint">
+            workerは純粋な評価器なので、数を変えても同じシードなら結果は完全に一致する。
+          </p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

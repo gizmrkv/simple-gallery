@@ -33,6 +33,7 @@ GitHub Pagesは1リポジトリにつき1サイトしか持てない。そのた
 | [turing-pattern](./turing-pattern/) | [/turing-pattern/](https://gizmrkv.github.io/simple-gallery/turing-pattern/) | [simple-turing-pattern](https://github.com/gizmrkv/simple-turing-pattern) | Gray-Scott反応拡散方程式によるチューリングパターン生成デモ(Godot版からTSへ移植) |
 | [noise](./noise/) | [/noise/](https://gizmrkv.github.io/simple-gallery/noise/) | [simple-noise](https://github.com/gizmrkv/simple-noise) | 各種ノイズ関数とフラクタル合成モードで2Dノイズ場を可視化するデモ(Godot版からTSへ移植) |
 | [piano](./piano/) | [/piano/](https://gizmrkv.github.io/simple-gallery/piano/) | — | PCキーボードで弾けるシンセピアノ。GarageBand/Ableton Live系の2段クロマチック配列を採用し、左右Shiftでのオクターブ切り替え、Key/Scaleに応じた鍵盤ハイライト、波形切り替えができる |
+| [biter-maze](./biter-maze/) | [/biter-maze/](https://gizmrkv.github.io/simple-gallery/biter-maze/) | — | Factorioのバイターの経路探索を再現し、壁を壊されずに最も長く迂回させる迷路を遺伝的アルゴリズムで探索するデモ。バイターは壁を通行不能とは見なさずコストを払えば壊して通るため、迂回が高くつきすぎる迷路は貫通される。個体をクリックすると経路をシミュレーションでき、自作の迷路を集団に投入して交叉・淘汰させられる |
 
 ## 設計
 

@@ -9,7 +9,12 @@ const COL_BROKEN = [239, 68, 68]; // --danger
 /** 壁を壊されずに歩くバイターが、壁1枚をかじるのにかかる時間（タイル移動換算）。 */
 const CHEW_TILES = 2.5;
 
-function fitCanvas(canvas: HTMLCanvasElement, cssW: number, cssH: number): number {
+/**
+ * CSS で大きさが決まる canvas のバッキングストアだけを合わせる。
+ * style を書き戻さないのが肝。書き戻すと次フレームの計測値が自分の出力になり、
+ * 大きさが収束して縮み続ける。
+ */
+function syncBackingStore(canvas: HTMLCanvasElement, cssW: number, cssH: number): number {
   const dpr = window.devicePixelRatio || 1;
   const pw = Math.max(1, Math.round(cssW * dpr));
   const ph = Math.max(1, Math.round(cssH * dpr));
@@ -17,9 +22,26 @@ function fitCanvas(canvas: HTMLCanvasElement, cssW: number, cssH: number): numbe
     canvas.width = pw;
     canvas.height = ph;
   }
-  canvas.style.width = `${cssW}px`;
-  canvas.style.height = `${cssH}px`;
   return dpr;
+}
+
+/**
+ * 親要素のコンテンツ領域に収まる正方形を canvas に与える（レターボックス）。
+ * canvas 自身ではなく親を測る: noise/src/main.ts の resizeCanvas と同じ方針。
+ */
+function fitSquareToParent(canvas: HTMLCanvasElement): number {
+  const parent = canvas.parentElement;
+  if (!parent) return 0;
+  const style = getComputedStyle(parent);
+  const padX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+  const padY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+  const size = Math.floor(
+    Math.min(parent.clientWidth - padX, parent.clientHeight - padY),
+  );
+  if (size < 4) return 0;
+  canvas.style.width = `${size}px`;
+  canvas.style.height = `${size}px`;
+  return size;
 }
 
 // ---------------------------------------------------------------- Gallery
@@ -60,7 +82,7 @@ export class GalleryRenderer {
   ): void {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width < 4 || rect.height < 4) return;
-    const dpr = fitCanvas(this.canvas, rect.width, rect.height);
+    const dpr = syncBackingStore(this.canvas, rect.width, rect.height);
     const ctx = this.ctx;
 
     // 1セル1ピクセル + 1px の溝。列数は面積が最大になるものを選ぶ。
@@ -210,6 +232,11 @@ export class DetailRenderer {
     }
   }
 
+  /** 現在描画している盤面の幅。エディタの線補間が使う。 */
+  get width(): number {
+    return this.snap ? this.snap.w : 0;
+  }
+
   /** 表示座標 → セルindex。エディタの塗りに使う。外れたら -1。 */
   cellAt(clientX: number, clientY: number): number {
     if (!this.snap) return -1;
@@ -222,10 +249,9 @@ export class DetailRenderer {
   }
 
   draw(elapsedSec: number, showAllLanes: boolean, biterSpeed: number, editMode: boolean): void {
-    const rect = this.canvas.getBoundingClientRect();
-    if (rect.width < 4 || rect.height < 4) return;
-    const size = Math.max(1, Math.floor(Math.min(rect.width, rect.height)));
-    const dpr = fitCanvas(this.canvas, size, size);
+    const size = fitSquareToParent(this.canvas);
+    if (size <= 0) return;
+    const dpr = syncBackingStore(this.canvas, size, size);
     const ctx = this.ctx;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, size, size);
@@ -370,7 +396,7 @@ export class ChartRenderer {
   draw(): void {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width < 4 || rect.height < 4) return;
-    const dpr = fitCanvas(this.canvas, rect.width, rect.height);
+    const dpr = syncBackingStore(this.canvas, rect.width, rect.height);
     const ctx = this.ctx;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);

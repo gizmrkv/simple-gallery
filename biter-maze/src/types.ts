@@ -32,14 +32,20 @@ export interface FitnessParams {
   alpha: number;
   /** 壁を1枚壊されるごとの減点。 */
   breakPenalty: number;
-  /** 壁1枚あたりの倹約コスト。 */
+  /**
+   * 壁1枚あたりの倹約コスト。同程度の迷路なら壁が少ない方を選ばせるための項で、
+   * あくまで同点破りに留める必要がある。空盤に壁を1枚足したときの利得は
+   * 影響を受けるレーンが1本だけなので (1-alpha)*0.41/W ≒ 0.01 程度しかなく、
+   * これを上回る値にすると「1枚ずつ足す」方向の勾配が常に負になり、
+   * GAが空盤から抜け出せなくなる（W が広い盤で実際に崩壊する）。
+   */
   wallCost: number;
 }
 
 export const DEFAULT_FITNESS_PARAMS: FitnessParams = {
   alpha: 0.5,
   breakPenalty: 30,
-  wallCost: 0.1,
+  wallCost: 0.02,
 };
 
 /** GA のパラメータ。 */

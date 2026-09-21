@@ -92,7 +92,7 @@ export class Ui {
     const f = state.fit;
     this.range("alpha", (v) => (f.alpha = v), (v) => v.toFixed(2), () => f.alpha, live);
     this.range("breakPenalty", (v) => (f.breakPenalty = v), (v) => v.toFixed(0), () => f.breakPenalty, live);
-    this.range("wallCost", (v) => (f.wallCost = v), (v) => v.toFixed(2), () => f.wallCost, live);
+    this.range("wallCost", (v) => (f.wallCost = v), (v) => v.toFixed(3), () => f.wallCost, live);
 
     const g = state.ga;
     this.range("popSize", (v) => (g.popSize = v), (v) => `${v}`, () => g.popSize, noop);

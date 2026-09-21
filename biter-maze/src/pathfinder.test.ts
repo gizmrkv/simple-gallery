@@ -228,28 +228,33 @@ describe("Pathfinder", () => {
   });
 
   it("gpr=1 では Dijkstra と厳密一致し、gpr=2 では下回らない", () => {
-    // 緩和条件・ヒープ比較・コスト関数のバグを広く捕まえる性質テスト。
+    // 緩和条件・ヒープ比較・コスト関数・左右の巡回のバグを広く捕まえる性質テスト。
+    // 幅は 16 のほか、巡回が頻繁に効く小さい奇数幅 5 も回す。
     let seed = 12345;
     const rand = () => {
       seed = (seed * 1103515245 + 12345) & 0x7fffffff;
       return seed / 0x7fffffff;
     };
-    const pf = new Pathfinder(W, H);
-    for (let trial = 0; trial < 50; trial++) {
-      const density = 0.1 + 0.4 * rand();
-      const walls = blank();
-      for (let i = 0; i < W * H; i++) walls[i] = rand() < density ? 1 : 0;
+    for (const w of [16, 5]) {
+      const pf = new Pathfinder(w, H);
+      for (let trial = 0; trial < 50; trial++) {
+        const density = 0.1 + 0.4 * rand();
+        const walls = blank(w, H);
+        for (let i = 0; i < w * H; i++) walls[i] = rand() < density ? 1 : 0;
 
-      const pAdm = params({ goalPressureRatio: 1 });
-      pf.solveAll(walls, pAdm, false);
-      for (let s = 0; s < W; s++) {
-        expect(pf.laneCost[s]).toBeCloseTo(refDijkstra(walls, s, pAdm), 9);
-      }
+        const pAdm = params({ goalPressureRatio: 1 });
+        pf.solveAll(walls, pAdm, false);
+        for (let s = 0; s < w; s++) {
+          expect(pf.laneCost[s]).toBeCloseTo(refDijkstra(walls, s, pAdm, w, H), 9);
+        }
 
-      const pW = params({ goalPressureRatio: 2 });
-      pf.solveAll(walls, pW, false);
-      for (let s = 0; s < W; s++) {
-        expect(pf.laneCost[s]).toBeGreaterThanOrEqual(refDijkstra(walls, s, pAdm) - 1e-9);
+        const pW = params({ goalPressureRatio: 2 });
+        pf.solveAll(walls, pW, false);
+        for (let s = 0; s < w; s++) {
+          expect(pf.laneCost[s]).toBeGreaterThanOrEqual(
+            refDijkstra(walls, s, pAdm, w, H) - 1e-9,
+          );
+        }
       }
     }
   });
